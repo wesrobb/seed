@@ -1,0 +1,36 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ImportGroup Label="PropertySheets" />
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <OutDir>$(ProjectDir)bin\$(Configuration)\</OutDir>
+    <IntDir>$(ProjectDir)obj\$(Configuration)\</IntDir>
+    <TargetName>$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <ClCompile>
+      <PreprocessorDefinitions>_UNICODE;UNICODE;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <CompileAs>CompileAsC</CompileAs>
+      <ExceptionHandling>false</ExceptionHandling>
+      <SDLCheck>false</SDLCheck>
+      <ProgramDataBaseFileName>$(OutDir)$(TargetName).pdb</ProgramDataBaseFileName>
+    </ClCompile>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>if not exist $(SolutionDir)build mkdir $(SolutionDir)build
+if not exist $(SolutionDir)build\$(ProjectName) mkdir $(SolutionDir)build\$(ProjectName)
+
+if "$(TargetExt)"==".lib" (
+if not exist $(SolutionDir)build\$(ProjectName)\lib mkdir $(SolutionDir)build\$(ProjectName)\lib
+if not exist $(SolutionDir)build\$(ProjectName)\include mkdir $(SolutionDir)build\$(ProjectName)\include\$(ProjectName)
+for /R "$(ProjectDir)" %%f in (*.h) do copy %%f $(SolutionDir)build\$(ProjectName)\include\$(ProjectName) &gt;nul
+copy /Y "$(TargetDir)$(TargetName)$(TargetExt)" "$(SolutionDir)build\$(ProjectName)\lib\$(TargetName)$(TargetExt)" &gt;nul
+copy /Y "$(TargetDir)$(TargetName).pdb" "$(SolutionDir)build\$(ProjectName)\lib\$(TargetName).pdb" &gt;nul
+)</Command>
+    </PostBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemGroup />
+</Project>

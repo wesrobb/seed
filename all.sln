@@ -1,0 +1,50 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio 2013
+VisualStudioVersion = 12.0.30723.0
+MinimumVisualStudioVersion = 10.0.40219.1
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "log", "src\libs\log\log.vcxproj", "{D4D10EE3-C109-4EE1-8DD8-567FD2C44608}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "render", "src\libs\render\render.vcxproj", "{1A9078DF-B7E6-4C51-88D5-16B3F382D721}"
+	ProjectSection(ProjectDependencies) = postProject
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608} = {D4D10EE3-C109-4EE1-8DD8-567FD2C44608}
+	EndProjectSection
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "libs", "libs", "{505B743C-1929-4173-BF54-06F2FAEB7B0A}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "games", "games", "{4F90468C-0A0E-4EC6-9CF6-2746DCFD160E}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tele_ninja", "src\games\tele_ninja\tele_ninja.vcxproj", "{F668A17A-2F82-4244-B0E6-B97F177D4BC0}"
+	ProjectSection(ProjectDependencies) = postProject
+		{1A9078DF-B7E6-4C51-88D5-16B3F382D721} = {1A9078DF-B7E6-4C51-88D5-16B3F382D721}
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608} = {D4D10EE3-C109-4EE1-8DD8-567FD2C44608}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608}.Debug|Win32.Build.0 = Debug|Win32
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608}.Release|Win32.ActiveCfg = Release|Win32
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608}.Release|Win32.Build.0 = Release|Win32
+		{1A9078DF-B7E6-4C51-88D5-16B3F382D721}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1A9078DF-B7E6-4C51-88D5-16B3F382D721}.Debug|Win32.Build.0 = Debug|Win32
+		{1A9078DF-B7E6-4C51-88D5-16B3F382D721}.Release|Win32.ActiveCfg = Release|Win32
+		{1A9078DF-B7E6-4C51-88D5-16B3F382D721}.Release|Win32.Build.0 = Release|Win32
+		{F668A17A-2F82-4244-B0E6-B97F177D4BC0}.Debug|Win32.ActiveCfg = Debug|Win32
+		{F668A17A-2F82-4244-B0E6-B97F177D4BC0}.Debug|Win32.Build.0 = Debug|Win32
+		{F668A17A-2F82-4244-B0E6-B97F177D4BC0}.Release|Win32.ActiveCfg = Release|Win32
+		{F668A17A-2F82-4244-B0E6-B97F177D4BC0}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{D4D10EE3-C109-4EE1-8DD8-567FD2C44608} = {505B743C-1929-4173-BF54-06F2FAEB7B0A}
+		{1A9078DF-B7E6-4C51-88D5-16B3F382D721} = {505B743C-1929-4173-BF54-06F2FAEB7B0A}
+		{F668A17A-2F82-4244-B0E6-B97F177D4BC0} = {4F90468C-0A0E-4EC6-9CF6-2746DCFD160E}
+	EndGlobalSection
+EndGlobal

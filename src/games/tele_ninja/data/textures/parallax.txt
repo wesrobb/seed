@@ -1,0 +1,5 @@
+800:356
+JnRLayer01.png:0:0:400:240
+JnRLayer02.png:400:0:400:146
+JnRLayer03.png:0:240:400:104
+JnRLayer04.png:400:240:400:116
