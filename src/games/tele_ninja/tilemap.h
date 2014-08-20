@@ -8,25 +8,25 @@
 #define LAYER_MAX_WIDTH 200
 #define LAYER_MAX_HEIGHT 200
 
-typedef struct Layer {
+typedef struct layer {
         short tile[LAYER_MAX_WIDTH][LAYER_MAX_HEIGHT];
-} Layer;
+} layer;
 
-typedef struct TileMap {
+typedef struct tilemap {
         int tiles_wide;
         int tiles_high;
         int tile_width;
         int tile_height;
         int layer_count;
-        Layer layers[LAYER_MAX_LAYERS];
-        SpriteBatch spritebatch;
-} TileMap;
+        layer layers[LAYER_MAX_LAYERS];
+        spritebatch spritebatch;
+} tilemap;
 
 // Initializes the specified tilemap from the specified pyxel map file,
 // sprite atlas info, and sprite sheet.
 // Returns true if initialization was successful, false otherwise.
-bool TileMap_init(TileMap*, const char* map_file, 
+bool tilemap_init(tilemap*, const char* map_file, 
                   const char* atlas_file, const char* sprite_sheet_file);
                   
 // Draws the tile map.
-void TileMap_draw(TileMap*);
+void tilemap_draw(tilemap*);

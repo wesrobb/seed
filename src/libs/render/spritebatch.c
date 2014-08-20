@@ -13,52 +13,52 @@ static float _vert_data[SPRITEBATCH_MAX_SPRITES * 6 * 2];
 static float _tex_data[SPRITEBATCH_MAX_SPRITES * 6 * 2];
 
 unsigned char* stbi_load(const char*, int*, int*, int*, int);
-void stbi_image_free (void *);
-bool parseAtlasInfo(SpriteBatch*, const char* atlas_info_path);
+void stbi_image_free(void *);
+bool parse_atlas_info(spritebatch*, const char* atlas_info_path);
 
-bool SpriteBatch_init(SpriteBatch *sb,
+bool spritebatch_init(spritebatch *sb,
                       const char *atlas_info_path,
                       const char *texture_atlas_path)
 {
-  assert(sb);
-  assert(atlas_info_path);
-  assert(texture_atlas_path);
+        assert(sb);
+        assert(atlas_info_path);
+        assert(texture_atlas_path);
 
-  memset(sb, 0, sizeof(sb));
-  if (!parseAtlasInfo(sb, atlas_info_path)) {
-          return false;
-  }
+        memset(sb, 0, sizeof(sb));
+        if (!parse_atlas_info(sb, atlas_info_path)) {
+                return false;
+        }
 
-  if (!Texture_init(&sb->texture, texture_atlas_path)) {
-          LOGERR("Failed to load texture %s", texture_atlas_path);
-          return false;
-  }
-  
-  SpriteBatch_clearSprites(sb);
+        if (!texture_init(&sb->texture, texture_atlas_path)) {
+                LOGERR("Failed to load texture %s", texture_atlas_path);
+                return false;
+        }
 
-  return true;
+        spritebatch_clear_sprites(sb);
+
+        return true;
 }
 
-void SpriteBatch_destroy(SpriteBatch* sb)
+void spritebatch_destroy(spritebatch* sb)
 {
         assert(sb);
         kh_destroy(sp, sb->sprite_names_map);
 }
 
-void SpriteBatch_draw(const SpriteBatch* sb)
+void spritebatch_draw(const spritebatch* sb)
 {
         assert(sb);
-        for (Sprite* s = sb->active_sprites; s; s = s->next) {
-                Render_addSprite(s);
+        for (sprite* s = sb->active_sprites; s; s = s->next) {
+                render_add_sprite(s);
         }
 }
 
-Sprite* SpriteBatch_addSpriteName(SpriteBatch* sb,
-                                  const char* name,
-                                  float x_pos, float y_pos,
-                                  float x_anchor, float y_anchor,
-                                  float width, float height,
-                                  float rotation)
+sprite* spritebatch_add_sprite_name(spritebatch* sb,
+                                    const char* name,
+                                    float x_pos, float y_pos,
+                                    float x_anchor, float y_anchor,
+                                    float width, float height,
+                                    float rotation)
 {
         // Find the ID in the hash map using the name.
         khiter_t iter = kh_get(sp, sb->sprite_names_map, name);
@@ -67,27 +67,27 @@ Sprite* SpriteBatch_addSpriteName(SpriteBatch* sb,
         }
 
         uint32_t sprite_id = kh_val(sb->sprite_names_map, iter);
-        return SpriteBatch_addSpriteID(sb,
-                                       sprite_id,
-                                       x_pos, y_pos,
-                                       x_anchor, y_anchor,
-                                       width, height,
-                                       rotation);
+        return spritebatch_add_sprite_id(sb,
+                                         sprite_id,
+                                         x_pos, y_pos,
+                                         x_anchor, y_anchor,
+                                         width, height,
+                                         rotation);
 }
 
-Sprite* SpriteBatch_addSpriteID(SpriteBatch* sb,
-                                uint32_t sprite_id,
-                                float x_pos, float y_pos,
-                                float x_anchor, float y_anchor,
-                                float width, float height,
-                                float rotation)
+sprite* spritebatch_add_sprite_id(spritebatch* sb,
+                                  uint32_t sprite_id,
+                                  float x_pos, float y_pos,
+                                  float x_anchor, float y_anchor,
+                                  float width, float height,
+                                  float rotation)
 {
         if (!sb->inactive_sprites) {
                 // No more sprites available.
                 return NULL;
         }
 
-        Sprite* s;
+        sprite* s;
         s = sb->inactive_sprites;
         sb->inactive_sprites = sb->inactive_sprites->next;
 
@@ -118,7 +118,7 @@ Sprite* SpriteBatch_addSpriteID(SpriteBatch* sb,
         return s;
 }
 
-void SpriteBatch_removeSprite(SpriteBatch* sb, Sprite** s)
+void spritebatch_remove_sprite(spritebatch* sb, sprite** s)
 {
         assert(sb);
         assert(s);
@@ -143,7 +143,7 @@ void SpriteBatch_removeSprite(SpriteBatch* sb, Sprite** s)
         *s = NULL;
 }
 
-void SpriteBatch_clearSprites(SpriteBatch* sb)
+void spritebatch_clear_sprites(spritebatch* sb)
 {
         memset(sb->sprites, 0, sizeof(sb->sprites));
         for (uint32_t i = 0; i < SPRITEBATCH_MAX_SPRITES; ++i) {
@@ -164,16 +164,16 @@ void SpriteBatch_clearSprites(SpriteBatch* sb)
         sb->inactive_sprites = &sb->sprites[0];
 }
 
-bool parseAtlasInfo(SpriteBatch *sb, const char* atlas_info_path)
+bool parse_atlas_info(spritebatch *sb, const char* atlas_info_path)
 {
         FILE* atlas_file = fopen(atlas_info_path, "r");
         if (!atlas_file) {
                 LOGERR("Failed to open atlas file %s for reading",
-                        atlas_info_path);
+                       atlas_info_path);
                 return false;
         }
 
-         // Skip the first line which contains width and height.
+        // Skip the first line which contains width and height.
         sb->num_images = -1;
         int ch;
         while (EOF != (ch = fgetc(atlas_file))) {
@@ -186,7 +186,7 @@ bool parseAtlasInfo(SpriteBatch *sb, const char* atlas_info_path)
         uint32_t image_width = 0;
         uint32_t image_height = 0;
         fscanf(atlas_file, "%d:%d%*[^\n][\n]", &image_width, &image_height);
-        
+
         if (image_width == 0 || image_height == 0) {
                 fclose(atlas_file);
                 LOGERR("Atlas info file %s does not contain image's size",
@@ -205,11 +205,11 @@ bool parseAtlasInfo(SpriteBatch *sb, const char* atlas_info_path)
                 float h = 0;
 
                 static const char* format =
-                  "%*[\n]%[^:]:\
-                   %f:\
-                   %f:\
-                   %f:\
-                   %f%*[^\n]";
+                        "%*[\n]%[^:]:\
+                         %f:\
+                         %f:\
+                         %f:\
+                         %f%*[^\n]";
 
                 uint32_t name_pos = i * SPRITEBATCH_MAX_SPRITE_NAME_LEN;
                 fscanf(atlas_file, format,
@@ -225,7 +225,7 @@ bool parseAtlasInfo(SpriteBatch *sb, const char* atlas_info_path)
                 // Bottom left
                 sb->tex_coords[tex_index++] = x / image_width;
                 sb->tex_coords[tex_index++] = (y + h) / image_height;
-                
+
                 // Top left
                 sb->tex_coords[tex_index++] = x / image_width;
                 sb->tex_coords[tex_index++] = y / image_height;

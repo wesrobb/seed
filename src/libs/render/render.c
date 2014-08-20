@@ -54,7 +54,7 @@ void bindTextureUnit(uint32_t shader_prog,
         glUseProgram(0);
 }
 
-void switchTexture(Texture* t)
+void switchTexture(texture* t)
 {
         assert(t);
 
@@ -86,7 +86,7 @@ bool checkGLError()
         return error;
 }
 
-bool Render_init(uint32_t screen_width, uint32_t screen_height,
+bool render_init(uint32_t screen_width, uint32_t screen_height,
                  uint32_t virtual_width, uint32_t virtual_height,
                  const char* vert_shader_path, const char* frag_shader_path)
 {
@@ -118,7 +118,7 @@ bool Render_init(uint32_t screen_width, uint32_t screen_height,
         resetBuffers();
         bindTextureUnit(_shader_prog, _tex_unit, "sprite_texture");
         bindSampler(_tex_unit);
-        Render_resize(screen_width, screen_height);
+        render_resize(screen_width, screen_height);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -144,12 +144,12 @@ return_failed:
         return false;
 }
 
-void Render_free()
+void render_free()
 {
         glDeleteProgram(_shader_prog);
 }
 
-void Render_resize(uint32_t screen_width, uint32_t screen_height)
+void render_resize(uint32_t screen_width, uint32_t screen_height)
 {
         _screen_width = screen_width;
         _screen_height = screen_height;
@@ -183,13 +183,13 @@ void Render_resize(uint32_t screen_width, uint32_t screen_height)
         }
 }
 
-void Render_addSprite(const Sprite* s)
+void render_add_sprite(const sprite* s)
 {
         assert(s);
 
         if (s->texture->id != _last_texture_id ||
             _num_sprites >= MAX_SPRITES) {
-                Render_end(); // Not really ending, just flushing the renderer.
+                render_end(); // Not really ending, just flushing the renderer.
                 switchTexture(s->texture);
         }
 
@@ -270,7 +270,7 @@ void Render_addSprite(const Sprite* s)
         _tex_data[_tex_index++] = s->tex_coords[bri + 1];
 }
 
-uint32_t Render_loadTexture(unsigned char* data,
+uint32_t render_load_texture(unsigned char* data,
                             uint32_t width, uint32_t height,
                             uint32_t channels)
 {
@@ -293,19 +293,19 @@ uint32_t Render_loadTexture(unsigned char* data,
         return texture_id;
 }
 
-void Render_begin(void)
+void render_begin(void)
 {
         glClearColor(0.4f, 0.7f, 1.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
-void Render_end(void)
+void render_end(void)
 {
         glUseProgram(_shader_prog);
 
         // Set the camera transfrom
         GLint cam_uniform = glGetUniformLocation(_shader_prog, "cam");
-        kmMat4* cam_mat = Cam_getTransform();
+        kmMat4* cam_mat = cam_transform();
         glUniformMatrix4fv(cam_uniform, 1, GL_FALSE, cam_mat->mat);
 
         uint32_t vert_data_size = _num_sprites * 6 * 2 * sizeof(float);

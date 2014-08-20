@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-typedef struct Texture Texture;
+typedef struct texture texture;
 
 static const float g_default_tex_coords[] = { 0.0f, 1.0f,   // bottom left
                                               0.0f, 0.0f,   // top left
@@ -10,7 +10,7 @@ static const float g_default_tex_coords[] = { 0.0f, 1.0f,   // bottom left
                                               1.0f, 1.0f }; // bottom right
 
 
-typedef struct Sprite {
+typedef struct sprite {
         float x_pos;
         float y_pos;
         float width;
@@ -19,7 +19,7 @@ typedef struct Sprite {
         float y_anchor;
         float rotation;
         float* tex_coords; // Order is bl, tl, tr, br.
-        struct Sprite *prev, *next;
+        struct sprite *prev, *next;
         uint32_t id;
-        Texture* texture;
-} Sprite;
+        texture* texture;
+} sprite;

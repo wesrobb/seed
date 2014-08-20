@@ -9,7 +9,7 @@
 unsigned char* stbi_load(const char*, int*, int*, int*, int);
 void stbi_image_free(void *);
 
-bool Texture_init(Texture* t, const char* location)
+bool texture_init(texture* t, const char* location)
 {
         unsigned char* data = stbi_load(location, 
                                         &t->width, &t->height, 
@@ -19,7 +19,7 @@ bool Texture_init(Texture* t, const char* location)
                 return false;
         }
 
-        t->id = Render_loadTexture(data, t->width, t->height, t->channels);
+        t->id = render_load_texture(data, t->width, t->height, t->channels);
 
         stbi_image_free(data);
 

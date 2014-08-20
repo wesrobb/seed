@@ -8,31 +8,31 @@ static float _y = 0;
 static float _scale_x = 1;
 static float _scale_y = 1;
 
-void Cam_move(float x, float y)
+void cam_move(float x, float y)
 {
         _x += x;
         _y += y;
 }
 
-void Cam_moveTo(float x, float y)
+void cam_move_to(float x, float y)
 {
         _x = x;
         _y = y;
 }
 
-void Cam_zoom(float scale_x, float scale_y)
+void cam_zoom(float scale_x, float scale_y)
 {
         _scale_x += scale_x;
         _scale_y += scale_y;
 }
 
-void Cam_zoomTo(float scale_x, float scale_y)
+void cam_zoom_to(float scale_x, float scale_y)
 {
         _scale_x = scale_x;
         _scale_y = scale_y;
 }
 
-kmMat4* Cam_getTransform()
+kmMat4* cam_transform()
 {
         static kmMat4 cam;
         kmMat4Identity(&cam);
