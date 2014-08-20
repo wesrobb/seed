@@ -1,6 +1,7 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <core/thread.h>
 #include <glew/glew.h>
 #include <glfw/glfw3.h>
 #include <log/log.h>
