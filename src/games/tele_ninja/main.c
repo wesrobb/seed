@@ -53,6 +53,7 @@ int32_t main(int32_t argc, char* args[])
         glfwSetErrorCallback(errorCallback);
 
         if (!glfwInit()) {
+                LOGERR("%s", "Failed to initialize GLFW");
                 return return_code;
         }
 

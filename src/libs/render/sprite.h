@@ -2,8 +2,6 @@
 
 #include <inttypes.h>
 
-typedef struct texture texture;
-
 static const float g_default_tex_coords[] = { 0.0f, 1.0f,   // bottom left
                                               0.0f, 0.0f,   // top left
                                               1.0f, 0.0f,   // top right
@@ -21,5 +19,5 @@ typedef struct sprite {
         float* tex_coords; // Order is bl, tl, tr, br.
         struct sprite *prev, *next;
         uint32_t id;
-        texture* texture;
+        struct texture* texture;
 } sprite;

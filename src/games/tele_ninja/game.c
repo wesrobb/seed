@@ -30,31 +30,30 @@ bool Game_init(uint32_t screen_width, uint32_t screen_height,
 {
         // Todo: Load shaders path from config file.
         if (!render_init(screen_width, screen_height,
-                         virtual_width, virtual_height,
-                         "data/shaders/vertex.glsl",
-                         "data/shaders/fragment.glsl")) {
+                virtual_width, virtual_height,
+                "data/shaders/vertex.glsl",
+                "data/shaders/fragment.glsl")) {
                 LOGERR("%s", "Failed to initialize renderer");
                 return false;
         }
 
         Fps_init();
-        
+
         tilemap_init(&s_tile_map, "data/maps/DirtMap.txt",
-                                  "data/maps/DirtSprites.txt",
-                                  "data/maps/DirtSprites.png");
-                          
+                     "data/maps/DirtSprites.txt",
+                     "data/maps/DirtSprites.png");
+
         spritebatch_init(&s_player, "data/anims/walk_cycle.txt",
-                                    "data/anims/walk_cycle.png");
-        s_player_sprite = spritebatch_add_sprite_id(&s_player, walk_cycle_index, 
-                                                  300, 150, 0, 0, 20, 40, 0);
-        
+                         "data/anims/walk_cycle.png");
+        s_player_sprite = spritebatch_add_sprite_id(&s_player, walk_cycle_index,
+                                                    300, 150, 0, 0, 20, 40, 0);
+
 
         return true;
 }
 
 void Game_update(double dt)
-{
-}
+{}
 
 void Game_render(double interpolation)
 {
@@ -72,14 +71,13 @@ void Game_cleanup(void)
 }
 
 void Game_mouseMoved(double x_pos, double y_pos)
-{
-}
+{}
 
 void Game_mousePressed()
 {
         walk_cycle_index = ++walk_cycle_index % 2;
         spritebatch_remove_sprite(&s_player, &s_player_sprite);
         s_player_sprite = spritebatch_add_sprite_id(&s_player, walk_cycle_index,
-                                                  300, 150, 0, 0, 20, 40, 0);
+                                                    300, 150, 0, 0, 20, 40, 0);
 }
 

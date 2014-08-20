@@ -30,7 +30,12 @@ bool spritebatch_init(spritebatch *sb,
         }
 
         if (!texture_init(&sb->texture, texture_atlas_path)) {
-                LOGERR("Failed to load texture %s", texture_atlas_path);
+                LOGERR("Failed to create texture %s", texture_atlas_path);
+                return false;
+        }
+
+        if (!texture_upload(&sb->texture)) {
+                LOGERR("Failed to upload texture %s", texture_atlas_path);
                 return false;
         }
 
@@ -42,6 +47,8 @@ bool spritebatch_init(spritebatch *sb,
 void spritebatch_destroy(spritebatch* sb)
 {
         assert(sb);
+
+        texture_free(&sb->texture);
         kh_destroy(sp, sb->sprite_names_map);
 }
 

@@ -5,6 +5,7 @@
 #include <string.h>
 
 #include <glew/glew.h>
+#include <kazmath/kazmath.h>
 #include <log/log.h>
 
 #include "camera.h"
@@ -44,8 +45,8 @@ void resetBuffers()
         _tex_index = 0;
 }
 
-void bindTextureUnit(uint32_t shader_prog, 
-                     uint32_t tex_unit, 
+void bindTextureUnit(uint32_t shader_prog,
+                     uint32_t tex_unit,
                      const char* uniform_name)
 {
         GLuint tex_uniform = glGetUniformLocation(shader_prog, uniform_name);
@@ -211,15 +212,14 @@ void render_add_sprite(const sprite* s)
         tr.x = s->x_pos + s->width;
         tr.y = s->y_pos + s->height;
 
-        if (s->rotation != 0.0f)
-        {
+        if (s->rotation != 0.0f) {
                 kmVec2 anchor;
                 anchor.x = s->x_anchor;
                 anchor.y = s->y_anchor;
                 kmVec2RotateBy(&bl, &bl, s->rotation, &anchor);
                 kmVec2RotateBy(&br, &br, s->rotation, &anchor);
                 kmVec2RotateBy(&tl, &tl, s->rotation, &anchor);
-                kmVec2RotateBy(&tr, &tr, s->rotation, &anchor); 
+                kmVec2RotateBy(&tr, &tr, s->rotation, &anchor);
         }
 
         _vert_data[_vert_index++] = bl.x;
@@ -270,27 +270,37 @@ void render_add_sprite(const sprite* s)
         _tex_data[_tex_index++] = s->tex_coords[bri + 1];
 }
 
-uint32_t render_load_texture(unsigned char* data,
-                            uint32_t width, uint32_t height,
-                            uint32_t channels)
+bool render_load_texture(texture* t)
 {
-        GLuint texture_id;
-        glGenTextures(1, &texture_id);
-        glBindTexture(GL_TEXTURE_2D, texture_id);
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0,
-                     GL_RGBA, GL_UNSIGNED_BYTE, data);
+        assert(t);
+
+        if (t->uploaded) {
+                return true;
+        }
+
+        glGenTextures(1, &t->id);
+        glBindTexture(GL_TEXTURE_2D, t->id);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+        glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, t->width, t->height, 0,
+                     GL_RGBA, GL_UNSIGNED_BYTE, t->data);
         glBindTexture(GL_TEXTURE_2D, 0);
 
         if (checkGLError()) {
                 LOGERR("%s", "An GL error occurred when loading texture");
-                return -1;
+                return false;
         }
 
-        return texture_id;
+        t->uploaded = true;
+
+        return true;
+}
+
+void render_delete_texture(texture* t)
+{
+        glDeleteTextures(1, &t->id);
 }
 
 void render_begin(void)

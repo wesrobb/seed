@@ -3,10 +3,6 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-#include <kazmath/kazmath.h>
-
-#include "sprite.h"
-
 /// Initializes the renderer with the specified width and height
 /// and the specified vertex and fragment shaders. The atlas info
 /// path and image path specify the image to load for all sprites
@@ -24,13 +20,14 @@ void render_resize(uint32_t screen_width, uint32_t screen_height);
 /// Adds the sprite to the draw queue. If the queue is full or the sprite
 /// uses a texture that is not the same as the previous sprite
 /// then the queue is flushed (drawn) before adding the sprite.
-void render_add_sprite(const sprite*);
+void render_add_sprite(const struct sprite*);
 
-/// Binds the texture to GL and returns the GL texture object.
-/// Returns -1 if texture load fails.
-uint32_t render_load_texture(unsigned char* data,
-                             uint32_t width, uint32_t height,
-                             uint32_t channels);
+/// Binds the texture to GL and updates the texture ID.
+/// Returns false if texture load fails, true otherwise.
+bool render_load_texture(struct texture*);
+
+/// Deletes the texture object and unbinds it.
+void render_delete_texture(struct texture*);
 
 /// Prepares the renderer for drawing
 void render_begin(void);
