@@ -8,12 +8,8 @@
 #include <process.h>
 #include <Windows.h>
 
+#include "types.h"
 #include "win_error.h"
-
-typedef struct thread {
-        uint32_t id;
-        HANDLE handle;
-} thread;
 
 void set_thread_name(uint32_t thread_id, const char* name);
 

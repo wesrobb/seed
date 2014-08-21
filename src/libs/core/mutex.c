@@ -5,11 +5,8 @@
 
 #include <log/log.h>
 
+#include "types.h"
 #include "win_error.h"
-
-typedef struct mutex {
-        HANDLE handle;
-} mutex;
 
 mutex* mutex_alloc()
 {

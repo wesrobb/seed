@@ -68,12 +68,18 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="condition_var.h" />
     <ClInclude Include="mutex.h" />
+    <ClInclude Include="rect.h" />
+    <ClInclude Include="stretchy_buffer.h" />
     <ClInclude Include="thread.h" />
+    <ClInclude Include="types.h" />
     <ClInclude Include="win_error.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="condition_var.c" />
     <ClCompile Include="mutex.c" />
+    <ClCompile Include="rect.c" />
     <ClCompile Include="thread.c" />
     <ClCompile Include="win_error.c" />
   </ItemGroup>
