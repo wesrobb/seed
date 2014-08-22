@@ -3,6 +3,8 @@
 #include <assert.h>
 #include <stdlib.h>
 
+#include <Windows.h>
+
 #include <log/log.h>
 
 #include "types.h"
@@ -29,17 +31,18 @@ void condition_var_wait(condition_var* c, struct mutex* m)
         assert(c);
         assert(m);
 
-        SleepConditionVariableCS(&c->handle, m->handle, INFINITE);
+        SleepConditionVariableCS(&c->condition_variable, 
+                                 &m->critical_section, INFINITE);
 }
 
 void condition_var_notify(condition_var* c)
 {
         assert(c);
-        WakeConditionVariable(&c->handle);
+        WakeConditionVariable(&c->condition_variable);
 }
 
 void condition_var_notify_all(condition_var* c)
 {
         assert(c);
-        WakeAllConditionVariable(&c->handle);
+        WakeAllConditionVariable(&c->condition_variable);
 }

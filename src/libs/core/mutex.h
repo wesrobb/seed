@@ -10,9 +10,7 @@ mutex* mutex_alloc();
 void mutex_free(mutex* m);
 
 // Locks the specified mutex.
-// Returns false if locking failed.
-bool mutex_lock(mutex* m);
+void mutex_lock(mutex* m);
 // Unlocks the specified mutex.
-// Returns false if unlocking failed.
-bool mutex_unlock(mutex* m);
+void mutex_unlock(mutex* m);
 

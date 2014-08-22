@@ -1,7 +1,7 @@
 #include "mutex.h"
 
 #include <assert.h>
-#include <Windows.h>
+#include <synchapi.h>
 
 #include <log/log.h>
 
@@ -16,13 +16,7 @@ mutex* mutex_alloc()
                 return NULL;
         }
 
-        m->handle = CreateMutex(NULL, FALSE, NULL);
-        if (!m->handle) {
-                LOGERR("Failed to create mutex: %s", win_error_string());
-                free(m);
-                return NULL;
-        }
-
+        InitializeCriticalSection(&m->critical_section);
         return m;
 }
 
@@ -30,40 +24,18 @@ void mutex_free(mutex* m)
 {
         assert(m);
 
-        ReleaseMutex(m->handle);
+        DeleteCriticalSection(&m->critical_section);
         free(m);
 }
 
-bool mutex_lock(mutex* m)
+void mutex_lock(mutex* m)
 {
         assert(m);
-
-        DWORD result = WaitForSingleObject(m->handle, INFINITE);
-        switch (result) {
-        // The thread got ownership of the mutex
-        case WAIT_OBJECT_0:
-                return true;
-
-        // The thread got ownership of an abandoned mutex
-        case WAIT_ABANDONED:
-                LOGERR("%s", "Received ownership of abandoned mutex");
-                return false;
-
-        default:
-                LOGERR("%s", "Unknown mutex wait result");
-                return false;
-        }
-
+        EnterCriticalSection(&m->critical_section);
 }
 
-bool mutex_unlock(mutex* m)
+void mutex_unlock(mutex* m)
 {
         assert(m);
-
-        if (!ReleaseMutex(m->handle)) {
-                LOGERR("Failed to unlock mutex %s", win_error_string());
-                return false;
-        }
-
-        return true;
+        LeaveCriticalSection(&m->critical_section);
 }
