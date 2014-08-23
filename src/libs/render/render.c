@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <core/condition_var.h>
 #include <core/mutex.h>
 #include <core/stretchy_buffer.h>
 #include <core/thread.h>
@@ -35,15 +36,18 @@ typedef struct renderer {
         // data the rendering thread can render from the other buffer.
         sprite* sprite_sb[2];
         uint8_t current_buffer; // The buffer new sprites can be added to.
-        mutex* sprites_mutex;
 
         thread* render_thread;
+        mutex* render_mutex;
+        condition_var* render_condition;
+        bool rendering;
+        bool done;
 } renderer;
 
 #define CHECG_GL
 
 int compare_sprites(const void* lhs, const void* rhs);
-void __stdcall render_func(void* renderer);
+uint32_t __stdcall render_func(void* renderer);
 void swap_sprite_sb(renderer* r);
 sprite* prepare_back_buffer(renderer*);
 void render_sprites(renderer* r, sprite* sprites_buffer);
@@ -123,18 +127,24 @@ renderer* render_create(GLFWwindow* window,
                 goto cleanup_frag;
         }
 
-        r->sprites_mutex = mutex_create();
-        if (!r->sprites_mutex) {
-                LOGERR("%s", "Failed to allocate mutex");
+        r->render_mutex = mutex_create();
+        if (!r->render_mutex) {
+                LOGERR("%s", "Failed to allocate render mutex");
                 goto cleanup_shader_prog;
         }
 
-        r->window = window;
-        glfwMakeContextCurrent(r->window);
+        r->render_condition = condition_var_create();
+        if (!r->render_condition) {
+                LOGERR("%s", "Failed to allocate condition variable");
+                goto cleanup_render_mutex;
+        }
 
-        r->render_thread = NULL;
+        r->window = window;
+
         r->sprite_sb[0] = NULL;
         r->sprite_sb[1] = NULL;
+        r->rendering = false;
+        r->done = false;
         r->vert_attrib = glGetAttribLocation(r->shader_program, "vertex");
         r->tex_coord_attrib = glGetAttribLocation(r->shader_program, "tex_coord");
         r->virtual_width = virtual_width;
@@ -156,14 +166,29 @@ renderer* render_create(GLFWwindow* window,
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
 
+        r->render_thread = thread_create("render_thread", render_func, r);
+        if (!r->render_thread) {
+                LOGERR("%s", "Failed to create render_thread");
+                goto cleanup_condition_var;
+        }
+
         if (check_gl_error()) {
-                goto cleanup_mutex;
+                goto cleanup_render_thread;
         }
 
         return r;
 
-cleanup_mutex:
-        mutex_free(r->sprites_mutex);
+cleanup_render_thread:
+        mutex_lock(r->render_mutex);
+        r->done = true;
+        condition_var_notify(r->render_condition);
+        mutex_unlock(r->render_mutex);
+        thread_join(r->render_thread);
+        thread_free(r->render_thread);
+cleanup_condition_var:
+        condition_var_free(r->render_condition);
+cleanup_render_mutex:
+        mutex_free(r->render_mutex);
 cleanup_shader_prog:
         glDeleteProgram(r->shader_program);
 cleanup_frag:
@@ -180,8 +205,18 @@ void render_free(renderer* r)
 {
         assert(r);
 
+        // Stop the thread
+        mutex_lock(r->render_mutex);
+        r->done = true;
+        condition_var_notify(r->render_condition);
+        mutex_unlock(r->render_mutex);
+        thread_join(r->render_thread);
+        thread_free(r->render_thread);
+
+        condition_var_free(r->render_condition);
+        mutex_free(r->render_mutex);
+
         glfwMakeContextCurrent(r->window);
-        mutex_free(r->sprites_mutex);
         glDeleteProgram(r->shader_program);
         free(r);
 }
@@ -249,14 +284,17 @@ void render_submit(renderer* r)
 {
         assert(r);
 
-        swap_sprite_sb(r);
-        sprite* sprites = prepare_back_buffer(r);
-        render_sprites(r, sprites);
-        sb_reset(sprites);
-
-        if (check_gl_error()) {
-                LOGERR("%s", "An GL error occurred when renderering");
+        mutex_lock(r->render_mutex);
+        while (r->rendering) {
+                condition_var_wait(r->render_condition, r->render_mutex);
         }
+        glfwMakeContextCurrent(NULL);
+        mutex_unlock(r->render_mutex);
+
+        swap_sprite_sb(r);
+
+        // Tell the rendering thread to go.
+        condition_var_notify(r->render_condition);
 }
 
 int compare_sprites(const void* lhs, const void* rhs)
@@ -267,16 +305,41 @@ int compare_sprites(const void* lhs, const void* rhs)
         return a->tex->id - b->tex->id;
 }
 
-void __stdcall render_func(void* renderer)
+uint32_t __stdcall render_func(void* data)
 {
+        renderer* r = (renderer*)data;
 
+        while (!r->done) {
+                mutex_lock(r->render_mutex);
+                // Tell the game play thread rendering done.
+                r->rendering = false;
+                condition_var_notify(r->render_condition);
+
+                // Wait for the game play thread to kick off rendering.
+                condition_var_wait(r->render_condition, r->render_mutex);
+                if (r->done) {
+                        return 0;
+                }
+                r->rendering = true;
+                glfwMakeContextCurrent(r->window);
+                mutex_unlock(r->render_mutex);
+
+                sprite* sprites = prepare_back_buffer(r);
+                render_sprites(r, sprites);
+                glfwSwapBuffers(r->window);
+                sb_reset(sprites);
+
+                if (check_gl_error()) {
+                        LOGERR("%s", "An GL error occurred when rendering");
+                }
+        }
+
+        return 0;
 }
 
 void swap_sprite_sb(renderer* r)
 {
-        mutex_lock(r->sprites_mutex);
         r->current_buffer = ++r->current_buffer % 2;
-        mutex_unlock(r->sprites_mutex);
 }
 
 // Gets the back buffer and sorts it. Returns a 
@@ -297,6 +360,7 @@ sprite* prepare_back_buffer(renderer* r)
 void render_sprites(renderer* r, sprite* sprites_buffer)
 {
         glClearColor(0.4f, 0.7f, 1.0f, 1.0f);
+
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
         if (sb_count(sprites_buffer) == 0) {
@@ -474,7 +538,7 @@ bool upload_texture(renderer* r, texture* t)
         glBindTexture(GL_TEXTURE_2D, 0);
 
         if (check_gl_error()) {
-                LOGERR("%s", "An GL error occurred when loading texture");
+                LOGERR("%s", "A GL error occurred when loading texture");
                 return false;
         }
 

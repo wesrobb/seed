@@ -100,7 +100,6 @@ int32_t main(int32_t argc, char* args[])
                 interpolation = (double)(current_time + skip_ticks - tick) /
                                 skip_ticks;
                 Game_render(interpolation);
-                glfwSwapBuffers(window);
                 game_updates = 0;
 
                 glfwPollEvents();

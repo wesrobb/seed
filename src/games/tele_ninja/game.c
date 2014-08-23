@@ -53,8 +53,6 @@ bool Game_init(GLFWwindow* window,
         //texture_upload(&s_player_texture, s_renderer);
         s_player_sprite.tex = &s_player_texture;
 
-        render_add_sprite(s_renderer, &s_player_sprite);
-
         /*tilemap_init(&s_tile_map, "data/maps/DirtMap.txt",
                      "data/maps/DirtSprites.txt",
                      "data/maps/DirtSprites.png");*/
@@ -69,16 +67,17 @@ bool Game_init(GLFWwindow* window,
 }
 
 void Game_update(double dt)
-{}
-
-void Game_render(double interpolation)
 {
-        interpolation = 0;
-        Fps_log();
         render_add_sprite(s_renderer, &s_player_sprite);
+        Fps_log();
+
         //tilemap_draw(&s_tile_map);
         //spritebatch_draw(&s_player);
         render_submit(s_renderer);
+}
+
+void Game_render(double interpolation)
+{
 }
 
 void Game_cleanup(void)
