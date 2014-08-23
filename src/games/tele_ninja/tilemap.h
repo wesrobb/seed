@@ -19,7 +19,7 @@ typedef struct tilemap {
         int tile_height;
         int layer_count;
         layer layers[LAYER_MAX_LAYERS];
-        spritebatch spritebatch;
+        //spritebatch spritebatch;
 } tilemap;
 
 // Initializes the specified tilemap from the specified pyxel map file,

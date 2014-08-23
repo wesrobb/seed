@@ -6,9 +6,9 @@
 
 #define MAX_ENTITIES 5096
 
-/// Global var for all code to access all entities.
+// Global var for all code to access all entities.
 static Entity _entities[MAX_ENTITIES];
-/// ID of the next unused entity. -1 if no inactive entities.
+// ID of the next unused entity. -1 if no inactive entities.
 static int32_t _next_entity;
 
 Entity* Entity_new(void)

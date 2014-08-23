@@ -81,8 +81,7 @@ int32_t main(int32_t argc, char* args[])
                 return return_code;
         }
 
-        if (!Game_init(_screen_width, _screen_height,
-                       _virtual_width, _virtual_height)) {
+        if (!Game_init(window, _virtual_width, _virtual_height)) {
                 goto cleanup_window;
         }
 

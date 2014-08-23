@@ -1,18 +1,17 @@
 #include "mutex.h"
 
 #include <assert.h>
-#include <synchapi.h>
+#include <Windows.h>
 
 #include <log/log.h>
 
 #include "types.h"
 #include "win_error.h"
 
-mutex* mutex_alloc()
+mutex* mutex_create()
 {
-        mutex* m = malloc(sizeof(m));
+        mutex* m = malloc(sizeof(*m));
         if (!m) {
-                LOGERR("%s", "Failed to allocate mutex");
                 return NULL;
         }
 

@@ -5,7 +5,7 @@
 typedef struct mutex mutex;
 
 // Allocates a new mutex.
-mutex* mutex_alloc();
+mutex* mutex_create();
 // Frees the specified mutex.
 void mutex_free(mutex* m);
 

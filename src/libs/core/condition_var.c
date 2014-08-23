@@ -13,16 +13,17 @@ condition_var* condition_var_create()
 {
         condition_var* c = malloc(sizeof(*c));
         if (!c) {
-                LOGERR("%s", "Failed to allocate condition variable");
                 return NULL;
         }
 
+        InitializeConditionVariable(&c->condition_variable);
         return c;
 }
 
 void condition_var_free(condition_var* c)
 {
         assert(c);
+        
         free(c);
 }
 

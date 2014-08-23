@@ -9,12 +9,12 @@ typedef enum {
         log_dbg
 } log_level;
 
-/// Creates the file to which log messages will be written.
+// Creates the file to which log messages will be written.
 bool log_init(const char* log_file_path, log_level level);
-/// Logs the specified message.
+// Logs the specified message.
 void log_msg(log_level level, const char* level_name, 
                               const char *fmt, ...);
-/// Closes the log file if it is open.
+// Closes the log file if it is open.
 void log_free();
 
 #define LOGDBG(format, ...) log_msg(log_dbg, "DBG", format, __VA_ARGS__)

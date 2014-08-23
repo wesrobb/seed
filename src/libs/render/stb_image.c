@@ -68,7 +68,7 @@
 // or create stb_image.h, #define STBI_HEADER_FILE_ONLY, and
 // then include stb_image.c from it.
 
-////   begin header file  ////////////////////////////////////////////////////
+///   begin header file  ///////////////////////////////////
 //
 // Limitations:
 //    - no jpeg progressive support
@@ -211,7 +211,7 @@ typedef unsigned char stbi_uc;
 extern "C" {
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 //
 // PRIMARY API - works on images of any type
 //
@@ -328,7 +328,7 @@ extern void stbi_install_YCbCr_to_RGB(stbi_YCbCr_to_RGB_run func);
 
 //
 //
-////   end header file   /////////////////////////////////////////////////////
+///   end header file   ////////////////////////////////////
 #endif // STBI_INCLUDE_STB_IMAGE_H
 
 #ifndef STBI_HEADER_FILE_ONLY
@@ -384,7 +384,7 @@ typedef unsigned char validate_uint32[sizeof(uint32)==4 ? 1 : -1];
    #define stbi_lrot(x,y)  (((x) << (y)) | ((x) >> (32 - (y))))
 #endif
 
-///////////////////////////////////////////////
+////////////////////////////////
 //
 //  stbi struct and start_xxx functions
 
@@ -700,7 +700,7 @@ void   stbi_ldr_to_hdr_scale(float scale) { l2h_scale = scale; }
 #endif
 
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 //
 // Common code used by all image loaders
 //
@@ -815,7 +815,7 @@ static uint32 get32le(stbi *s)
    return z + (get16le(s) << 16);
 }
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 //
 //  generic converter from built-in img_n to req_comp
 //    individual types do this automatically as much as possible (e.g. jpeg
@@ -920,7 +920,7 @@ static stbi_uc *hdr_to_ldr(float   *data, int x, int y, int comp)
 }
 #endif
 
-//////////////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////
 //
 //  "baseline" JPEG/JFIF decoder (not actually fully baseline implementation)
 //

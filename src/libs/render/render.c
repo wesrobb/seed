@@ -4,7 +4,11 @@
 #include <stdlib.h>
 #include <string.h>
 
+#include <core/mutex.h>
+#include <core/stretchy_buffer.h>
+#include <core/thread.h>
 #include <glew/glew.h>
+#include <glfw/glfw3.h>
 #include <kazmath/kazmath.h>
 #include <log/log.h>
 
@@ -14,36 +18,39 @@
 #include "sprite.h"
 #include "texture.h"
 
+typedef struct renderer {
+        GLFWwindow* window;
+
+        uint16_t width;
+        uint16_t height;
+        uint16_t virtual_width;
+        uint16_t virtual_height;
+
+        GLuint shader_program;
+        GLuint vert_attrib;
+        GLuint tex_coord_attrib;
+        uint32_t tex_unit;
+
+        // Rendering is double buffered. So while gameplay thread writes new
+        // data the rendering thread can render from the other buffer.
+        sprite* sprite_sb[2];
+        uint8_t current_buffer; // The buffer new sprites can be added to.
+        mutex* sprites_mutex;
+
+        thread* render_thread;
+} renderer;
+
 #define CHECG_GL
 
-#define MAX_SPRITES 5000
-static uint32_t _num_sprites;
-
-static GLuint _shader_prog;
-static GLuint _vertex_attrib;
-static GLuint _tex_coord_attrib;
-
-static uint32_t _last_texture_id;
-static uint32_t _tex_unit;
-
-// 6 points per quad, 2 floats per point.
-// The buffers are passed to openGL.
-static float _vert_data[MAX_SPRITES * 6 * 2];
-static float _tex_data[MAX_SPRITES * 6 * 2];
-static uint32_t _vert_index;
-static uint32_t _tex_index;
-
-static uint32_t _virtual_width;
-static uint32_t _virtual_height;
-static uint32_t _screen_width;
-static uint32_t _screen_height;
-
-void resetBuffers()
-{
-        _num_sprites = 0;
-        _vert_index = 0;
-        _tex_index = 0;
-}
+int compare_sprites(const void* lhs, const void* rhs);
+void __stdcall render_func(void* renderer);
+void swap_sprite_sb(renderer* r);
+sprite* prepare_back_buffer(renderer*);
+void render_sprites(renderer* r, sprite* sprites_buffer);
+float* calc_verts(sprite* s, float* vert_buffer);
+float* calc_tex_coords(sprite* s, float* tex_coord_buffer);
+void draw_buffers(renderer*, float* vert_buffer, float* tex_coord_buffer);
+bool upload_texture(renderer* r, texture* t);
 
 void bindTextureUnit(uint32_t shader_prog,
                      uint32_t tex_unit,
@@ -55,13 +62,12 @@ void bindTextureUnit(uint32_t shader_prog,
         glUseProgram(0);
 }
 
-void switchTexture(texture* t)
+void switchTexture(renderer* r, texture* t)
 {
         assert(t);
 
-        glActiveTexture(GL_TEXTURE0 + _tex_unit);
+        glActiveTexture(GL_TEXTURE0 + r->tex_unit);
         glBindTexture(GL_TEXTURE_2D, t->id);
-        _last_texture_id = t->id;
 }
 
 void bindSampler(uint32_t tex_unit)
@@ -74,7 +80,7 @@ void bindSampler(uint32_t tex_unit)
         glBindSampler(tex_unit, sampler);
 }
 
-bool checkGLError()
+bool check_gl_error()
 {
         bool error = false;
         GLenum gl_error = glGetError();
@@ -87,14 +93,22 @@ bool checkGLError()
         return error;
 }
 
-bool render_init(uint32_t screen_width, uint32_t screen_height,
-                 uint32_t virtual_width, uint32_t virtual_height,
-                 const char* vert_shader_path, const char* frag_shader_path)
+renderer* render_create(GLFWwindow* window,
+                        uint32_t virtual_width, uint32_t virtual_height,
+                        const char* vert_shader_path, const char* frag_shader_path)
 {
+        assert(window);
+
+        renderer* r = malloc(sizeof(*r));
+        if (!r) {
+                LOGERR("%s", "Failed to allocate renderer");
+                goto return_failed;
+        }
+
         GLuint vert_shader = make_shader(GL_VERTEX_SHADER, vert_shader_path);
         if (vert_shader == 0) {
                 LOGERR("%s", "Error making vertex shader");
-                goto return_failed;
+                goto cleanup_renderer;
         }
 
         GLuint frag_shader = make_shader(GL_FRAGMENT_SHADER, frag_shader_path);
@@ -103,23 +117,36 @@ bool render_init(uint32_t screen_width, uint32_t screen_height,
                 goto cleanup_vert;
         }
 
-        _shader_prog = make_program(vert_shader, frag_shader);
-        if (_shader_prog == 0) {
+        r->shader_program = make_program(vert_shader, frag_shader);
+        if (r->shader_program == 0) {
                 LOGERR("%s", "Error making shader program");
                 goto cleanup_frag;
         }
 
-        _vertex_attrib = glGetAttribLocation(_shader_prog, "vertex");
-        _tex_coord_attrib = glGetAttribLocation(_shader_prog, "tex_coord");
-        _virtual_width = virtual_width;
-        _virtual_height = virtual_height;
-        _last_texture_id = -1;
-        _tex_unit = 0;
+        r->sprites_mutex = mutex_create();
+        if (!r->sprites_mutex) {
+                LOGERR("%s", "Failed to allocate mutex");
+                goto cleanup_shader_prog;
+        }
 
-        resetBuffers();
-        bindTextureUnit(_shader_prog, _tex_unit, "sprite_texture");
-        bindSampler(_tex_unit);
-        render_resize(screen_width, screen_height);
+        r->window = window;
+        glfwMakeContextCurrent(r->window);
+
+        r->render_thread = NULL;
+        r->sprite_sb[0] = NULL;
+        r->sprite_sb[1] = NULL;
+        r->vert_attrib = glGetAttribLocation(r->shader_program, "vertex");
+        r->tex_coord_attrib = glGetAttribLocation(r->shader_program, "tex_coord");
+        r->virtual_width = virtual_width;
+        r->virtual_height = virtual_height;
+        r->tex_unit = 0;
+        r->current_buffer = 0;
+
+        bindTextureUnit(r->shader_program, r->tex_unit, "sprite_texture");
+        bindSampler(r->tex_unit);
+        uint32_t width, height;
+        glfwGetWindowSize(window, &width, &height);
+        render_resize(r, width, height);
 
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -129,32 +156,43 @@ bool render_init(uint32_t screen_width, uint32_t screen_height,
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_LEQUAL);
 
-        if (checkGLError()) {
-                goto cleanup_shader_prog;
+        if (check_gl_error()) {
+                goto cleanup_mutex;
         }
 
-        return true;
+        return r;
 
+cleanup_mutex:
+        mutex_free(r->sprites_mutex);
 cleanup_shader_prog:
-        glDeleteProgram(_shader_prog);
+        glDeleteProgram(r->shader_program);
 cleanup_frag:
         glDeleteShader(frag_shader);
 cleanup_vert:
         glDeleteShader(vert_shader);
+cleanup_renderer:
+        free(r);
 return_failed:
-        return false;
+        return NULL;
 }
 
-void render_free()
+void render_free(renderer* r)
 {
-        glDeleteProgram(_shader_prog);
+        assert(r);
+
+        glfwMakeContextCurrent(r->window);
+        mutex_free(r->sprites_mutex);
+        glDeleteProgram(r->shader_program);
+        free(r);
 }
 
-void render_resize(uint32_t screen_width, uint32_t screen_height)
+void render_resize(renderer* r, uint32_t screen_width, uint32_t screen_height)
 {
-        _screen_width = screen_width;
-        _screen_height = screen_height;
-        float aspect_ratio = ((float)_virtual_width) / ((float)_virtual_height);
+        assert(r);
+
+        r->width = screen_width;
+        r->height = screen_height;
+        float aspect_ratio = ((float)r->virtual_width) / ((float)r->virtual_height);
         uint32_t width = screen_width;
         uint32_t height = (uint32_t)(width / aspect_ratio + 0.5f);
 
@@ -169,33 +207,143 @@ void render_resize(uint32_t screen_width, uint32_t screen_height)
 
         glViewport(viewport_x, viewport_y, width, height);
 
-        GLint proj_uniform = glGetUniformLocation(_shader_prog, "projection");
+        GLint proj_uniform = glGetUniformLocation(r->shader_program, "projection");
         kmMat4 proj_matrix;
         kmMat4OrthographicProjection(&proj_matrix,
-                                     0, (float)_virtual_width,
-                                     0, (float)_virtual_height,
+                                     0, (float)r->virtual_width,
+                                     0, (float)r->virtual_height,
                                      -1, 1);
-        glUseProgram(_shader_prog);
+        glUseProgram(r->shader_program);
         glUniformMatrix4fv(proj_uniform, 1, GL_FALSE, proj_matrix.mat);
         glUseProgram(0);
 
-        if (checkGLError()) {
+        if (check_gl_error()) {
                 LOGERR("%s", "An GL error occurred when resizing renderer");
         }
 }
 
-void render_add_sprite(const sprite* s)
+void render_add_sprite(renderer* r, const sprite* s)
 {
         assert(s);
+        sb_push(r->sprite_sb[r->current_buffer], *s);
+}
 
-        if (s->texture->id != _last_texture_id ||
-            _num_sprites >= MAX_SPRITES) {
-                render_end(); // Not really ending, just flushing the renderer.
-                switchTexture(s->texture);
+void render_add_sprites(renderer* r, const sprite* sprites, 
+                        int32_t sprites_len)
+{
+        assert(r);
+        sprite* begin = sb_add(r->sprite_sb[r->current_buffer], sprites_len);
+        memcpy(begin, sprites, sprites_len);
+}
+
+void render_delete_texture(renderer* r, texture* t)
+{
+        assert(r);
+        assert(t);
+
+        glfwMakeContextCurrent(r->window);
+        glDeleteTextures(1, &t->id);
+}
+
+void render_submit(renderer* r)
+{
+        assert(r);
+
+        swap_sprite_sb(r);
+        sprite* sprites = prepare_back_buffer(r);
+        render_sprites(r, sprites);
+        sb_reset(sprites);
+
+        if (check_gl_error()) {
+                LOGERR("%s", "An GL error occurred when renderering");
+        }
+}
+
+int compare_sprites(const void* lhs, const void* rhs)
+{
+        const sprite* a = lhs;
+        const sprite* b = rhs;
+
+        return a->tex->id - b->tex->id;
+}
+
+void __stdcall render_func(void* renderer)
+{
+
+}
+
+void swap_sprite_sb(renderer* r)
+{
+        mutex_lock(r->sprites_mutex);
+        r->current_buffer = ++r->current_buffer % 2;
+        mutex_unlock(r->sprites_mutex);
+}
+
+// Gets the back buffer and sorts it. Returns a 
+// pointer to the sorted buffer.
+sprite* prepare_back_buffer(renderer* r)
+{
+        // Find the buffer to read from.
+        uint8_t back_buffer = (r->current_buffer + 1) % 2;
+        sprite* sprites = r->sprite_sb[back_buffer];
+
+        // Sort the sprites by texture ID to minimize the number of
+        // texture switches we have to do.
+        qsort(sprites, sb_count(sprites), sizeof(sprite), compare_sprites);
+
+        return sprites;
+}
+
+void render_sprites(renderer* r, sprite* sprites_buffer)
+{
+        glClearColor(0.4f, 0.7f, 1.0f, 1.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+        if (sb_count(sprites_buffer) == 0) {
+                return;
         }
 
-        _num_sprites++;
+        glUseProgram(r->shader_program);
 
+        // Set the camera transfrom
+        GLint cam_uniform = glGetUniformLocation(r->shader_program, "cam");
+        kmMat4* cam_mat = cam_transform();
+        glUniformMatrix4fv(cam_uniform, 1, GL_FALSE, cam_mat->mat);
+
+        // Sprites are sorted by texture ID so render until texture 
+        // switch then render some more
+        int num_sprites = sb_count(sprites_buffer);
+        int last_tex_id = sprites_buffer[0].tex->id;
+        float* vert_buffer = NULL;
+        float* tex_coord_buffer = NULL;
+        for (int i = 0; i < num_sprites; ++i) {
+                sprite* s = &sprites_buffer[i];
+                vert_buffer = calc_verts(s, vert_buffer);
+                tex_coord_buffer = calc_tex_coords(s, tex_coord_buffer);
+
+                if (s->tex->id != last_tex_id || i == num_sprites - 1) {
+                        if (!s->tex->uploaded) {
+                                upload_texture(r, s->tex);
+                        }
+                        // draw current buffers
+                        draw_buffers(r, vert_buffer, tex_coord_buffer);
+
+                        // switch to new texture reset everything
+                        switchTexture(r, s->tex);
+                        last_tex_id = s->tex->id;
+                        sb_reset(vert_buffer);
+                        sb_reset(tex_coord_buffer);
+                }
+        }
+
+        sb_free(vert_buffer);
+        sb_free(tex_coord_buffer);
+
+        glUseProgram(0);
+}
+
+float* calc_verts(sprite* s, float* vert_buffer)
+{
         kmVec2 bl; // bottom left
         bl.x = s->x_pos;
         bl.y = s->y_pos;
@@ -221,56 +369,93 @@ void render_add_sprite(const sprite* s)
                 kmVec2RotateBy(&tl, &tl, s->rotation, &anchor);
                 kmVec2RotateBy(&tr, &tr, s->rotation, &anchor);
         }
+        sb_push(vert_buffer, bl.x);
+        sb_push(vert_buffer, bl.y);
+        sb_push(vert_buffer, tl.x);
+        sb_push(vert_buffer, tl.y);
+        sb_push(vert_buffer, tr.x);
+        sb_push(vert_buffer, tr.y);
+        sb_push(vert_buffer, bl.x);
+        sb_push(vert_buffer, bl.y);
+        sb_push(vert_buffer, tr.x);
+        sb_push(vert_buffer, tr.y);
+        sb_push(vert_buffer, br.x);
+        sb_push(vert_buffer, br.y);
 
-        _vert_data[_vert_index++] = bl.x;
-        _vert_data[_vert_index++] = bl.y;
-        _vert_data[_vert_index++] = tl.x;
-        _vert_data[_vert_index++] = tl.y;
-        _vert_data[_vert_index++] = tr.x;
-        _vert_data[_vert_index++] = tr.y;
-        _vert_data[_vert_index++] = bl.x;
-        _vert_data[_vert_index++] = bl.y;
-        _vert_data[_vert_index++] = tr.x;
-        _vert_data[_vert_index++] = tr.y;
-        _vert_data[_vert_index++] = br.x;
-        _vert_data[_vert_index++] = br.y;
-
-        // Texture coordinates indices.
-        /*uint32_t bli = 0;
-        uint32_t tli = 2;
-        uint32_t tri = 4;
-        uint32_t bri = 6;
-        _tex_data[_tex_index++] = s->tex_coords[bli];
-        _tex_data[_tex_index++] = s->tex_coords[bli + 1];
-        _tex_data[_tex_index++] = s->tex_coords[tli];
-        _tex_data[_tex_index++] = s->tex_coords[tli + 1];
-        _tex_data[_tex_index++] = s->tex_coords[tri];
-        _tex_data[_tex_index++] = s->tex_coords[tri + 1];
-        _tex_data[_tex_index++] = s->tex_coords[bli];
-        _tex_data[_tex_index++] = s->tex_coords[bli + 1];
-        _tex_data[_tex_index++] = s->tex_coords[tri];
-        _tex_data[_tex_index++] = s->tex_coords[tri + 1];
-        _tex_data[_tex_index++] = s->tex_coords[bri];
-        _tex_data[_tex_index++] = s->tex_coords[bri + 1];*/
-        uint32_t bli = 0;
-        uint32_t tli = 2;
-        uint32_t tri = 4;
-        uint32_t bri = 6;
-        _tex_data[_tex_index++] = s->tex_coords[bli];
-        _tex_data[_tex_index++] = s->tex_coords[bli + 1];
-        _tex_data[_tex_index++] = s->tex_coords[tli];
-        _tex_data[_tex_index++] = s->tex_coords[tli + 1];
-        _tex_data[_tex_index++] = s->tex_coords[tri];
-        _tex_data[_tex_index++] = s->tex_coords[tri + 1];
-        _tex_data[_tex_index++] = s->tex_coords[bli];
-        _tex_data[_tex_index++] = s->tex_coords[bli + 1];
-        _tex_data[_tex_index++] = s->tex_coords[tri];
-        _tex_data[_tex_index++] = s->tex_coords[tri + 1];
-        _tex_data[_tex_index++] = s->tex_coords[bri];
-        _tex_data[_tex_index++] = s->tex_coords[bri + 1];
+        return vert_buffer;
 }
 
-bool render_load_texture(texture* t)
+float* calc_tex_coords(sprite* s, float* tex_coord_buffer)
+{
+        float tex_width = (float)s->tex->width;
+        float tex_height = (float)s->tex->height;
+        float x = s->tex_rect.x;
+        float y = s->tex_rect.y;
+        float w = s->tex_rect.w == 0.0f ? tex_width : s->tex_rect.w;
+        float h = s->tex_rect.h == 0.0f ? tex_height : s->tex_rect.h;
+
+        // Bottom left
+        float bot_left_s = s->tex_rect.x / tex_width;
+        float bot_left_t = (y + h) / tex_height;
+
+        // Top left
+        float top_left_s = x / tex_width;
+        float top_left_t = y / tex_height;
+
+        // Top right
+        float top_right_s = (x + w) / tex_width;
+        float top_right_t = y / tex_height;
+
+        // Bottom right
+        float bot_right_s = (x + w) / tex_width;
+        float bot_right_t = (y + h) / tex_height;
+
+        sb_push(tex_coord_buffer, bot_left_s);
+        sb_push(tex_coord_buffer, bot_left_t);
+        sb_push(tex_coord_buffer, top_left_s);
+        sb_push(tex_coord_buffer, top_left_t);
+        sb_push(tex_coord_buffer, top_right_s);
+        sb_push(tex_coord_buffer, top_right_t);
+        sb_push(tex_coord_buffer, bot_left_s);
+        sb_push(tex_coord_buffer, bot_left_t);
+        sb_push(tex_coord_buffer, top_right_s);
+        sb_push(tex_coord_buffer, top_right_t);
+        sb_push(tex_coord_buffer, bot_right_s);
+        sb_push(tex_coord_buffer, bot_right_t);
+
+        return tex_coord_buffer;
+}
+
+void draw_buffers(renderer* r, float* vert_sb, float* tex_coord_sb)
+{
+        int vert_count = sb_count(vert_sb);
+        uint32_t vert_data_size = vert_count * sizeof(float);
+        GLuint gl_vert_buffer = make_buffer(GL_ARRAY_BUFFER,
+                                            vert_sb, vert_data_size);
+
+        glBindBuffer(GL_ARRAY_BUFFER, gl_vert_buffer);
+        glEnableVertexAttribArray(r->vert_attrib);
+        glVertexAttribPointer(r->vert_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        uint32_t tex_data_size = sb_count(tex_coord_sb) * sizeof(float);
+        GLuint gl_tex_buffer = make_buffer(GL_ARRAY_BUFFER,
+                                           tex_coord_sb, tex_data_size);
+
+        glBindBuffer(GL_ARRAY_BUFFER, gl_tex_buffer);
+        glEnableVertexAttribArray(r->tex_coord_attrib);
+        glVertexAttribPointer(r->tex_coord_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
+        glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+        glDrawArrays(GL_TRIANGLES, 0, vert_count / 2);
+
+        glDeleteBuffers(1, &gl_vert_buffer);
+        glDeleteBuffers(1, &gl_tex_buffer);
+        glDisableVertexAttribArray(r->vert_attrib);
+        glDisableVertexAttribArray(r->tex_coord_attrib);
+}
+
+bool upload_texture(renderer* r, texture* t)
 {
         assert(t);
 
@@ -288,7 +473,7 @@ bool render_load_texture(texture* t)
                      GL_RGBA, GL_UNSIGNED_BYTE, t->data);
         glBindTexture(GL_TEXTURE_2D, 0);
 
-        if (checkGLError()) {
+        if (check_gl_error()) {
                 LOGERR("%s", "An GL error occurred when loading texture");
                 return false;
         }
@@ -296,58 +481,4 @@ bool render_load_texture(texture* t)
         t->uploaded = true;
 
         return true;
-}
-
-void render_delete_texture(texture* t)
-{
-        glDeleteTextures(1, &t->id);
-}
-
-void render_begin(void)
-{
-        glClearColor(0.4f, 0.7f, 1.0f, 1.0f);
-        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-}
-
-void render_end(void)
-{
-        glUseProgram(_shader_prog);
-
-        // Set the camera transfrom
-        GLint cam_uniform = glGetUniformLocation(_shader_prog, "cam");
-        kmMat4* cam_mat = cam_transform();
-        glUniformMatrix4fv(cam_uniform, 1, GL_FALSE, cam_mat->mat);
-
-        uint32_t vert_data_size = _num_sprites * 6 * 2 * sizeof(float);
-        GLuint gl_vert_buffer = make_buffer(GL_ARRAY_BUFFER,
-                                            _vert_data, vert_data_size);
-
-        glBindBuffer(GL_ARRAY_BUFFER, gl_vert_buffer);
-        glEnableVertexAttribArray(_vertex_attrib);
-        glVertexAttribPointer(_vertex_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        uint32_t tex_data_size = _num_sprites * 6 * 2 * sizeof(float);
-        GLuint gl_tex_buffer = make_buffer(GL_ARRAY_BUFFER,
-                                           _tex_data, tex_data_size);
-
-        glBindBuffer(GL_ARRAY_BUFFER, gl_tex_buffer);
-        glEnableVertexAttribArray(_tex_coord_attrib);
-        glVertexAttribPointer(_tex_coord_attrib, 2, GL_FLOAT, GL_FALSE, 0, 0);
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-        glDrawArrays(GL_TRIANGLES, 0, _num_sprites * 6);
-
-        glDeleteBuffers(1, &gl_vert_buffer);
-        glDeleteBuffers(1, &gl_tex_buffer);
-        glDisableVertexAttribArray(_vertex_attrib);
-        glDisableVertexAttribArray(_tex_coord_attrib);
-        glUseProgram(0);
-
-
-        if (checkGLError()) {
-                LOGERR("%s", "An GL error occurred when flushing renderer.");
-        }
-
-        resetBuffers();
 }

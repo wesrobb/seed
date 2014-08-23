@@ -46,7 +46,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>../../../build/core/include;../../../build/log/include;../../../ext/glew/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../build/core/include;../../../build/log/include;../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_UNICODE;UNICODE;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -60,7 +60,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>../../../build/core/include;../../../build/log/include;../../../ext/glew/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../build/core/include;../../../build/log/include;../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

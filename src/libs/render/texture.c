@@ -23,7 +23,7 @@ bool texture_init(texture* t, const char* location)
                 return false;
         }
 
-        t->data_mutex = mutex_alloc("gl_texture_upload_mutex");
+        t->data_mutex = mutex_create();
         if (!t->data_mutex) {
                 LOGERR("%s", "Failed to allocate texture mutex");
                 stbi_image_free(t->data);
@@ -36,30 +36,11 @@ bool texture_init(texture* t, const char* location)
         return true;
 }
 
-bool texture_upload(texture* t)
+void texture_free(texture* t, renderer* r)
 {
         assert(t);
 
-        if (!mutex_lock(t->data_mutex)) {
-                LOGERR("%s", "Failed to lock texture data for upload");
-                return false;
-        }
-
-        if (!render_load_texture(t)) {
-                LOGERR("%s", "Failed to upload texture to GL");
-                mutex_unlock(t->data_mutex);
-                return false;
-        }
-
-        mutex_unlock(t->data_mutex);
-        return true;
-}
-
-void texture_free(texture* t)
-{
-        assert(t);
-
-        render_delete_texture(t);
+        render_delete_texture(r, t);
 
         t->id = -1;
 

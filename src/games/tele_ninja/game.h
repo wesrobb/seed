@@ -3,9 +3,9 @@
 #include <inttypes.h>
 #include <stdbool.h>
 
-bool Game_init(uint32_t screen_width, uint32_t screen_height,
+bool Game_init(struct GLFWwindow* window,
                uint32_t virtual_width, uint32_t virtual_height);
-/// Updates the Game with the delta time since last update.
+// Updates the Game with the delta time since last update.
 void Game_update(double dt);
 void Game_render(double interpolation);
 void Game_cleanup(void);

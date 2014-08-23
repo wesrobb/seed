@@ -20,10 +20,6 @@ typedef struct texture {
 // Returns false if initialization failed. Errors will be logged.
 bool texture_init(texture*, const char* location);
 
-// Uploads the specified texture to the for rendering. This will lock the
-// texture while the data is copied to the GL context.
-bool texture_upload(texture*);
-
 // Deletes the texture data and resets all fields to 0.
 // Also removes the texture data from GPU memory if it was uploaded.
-void texture_free(texture* t);
+void texture_free(texture* t, struct renderer* r);
