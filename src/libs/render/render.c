@@ -268,7 +268,7 @@ void render_add_sprites(renderer* r, const sprite* sprites,
 {
         assert(r);
         sprite* begin = sb_add(r->sprite_sb[r->current_buffer], sprites_len);
-        memcpy(begin, sprites, sprites_len);
+        memcpy(begin, sprites, sprites_len * sizeof(sprite));
 }
 
 void render_delete_texture(renderer* r, texture* t)
@@ -288,9 +288,9 @@ void render_submit(renderer* r)
         while (r->rendering) {
                 condition_var_wait(r->render_condition, r->render_mutex);
         }
-        glfwMakeContextCurrent(NULL);
         mutex_unlock(r->render_mutex);
 
+        glfwMakeContextCurrent(NULL);
         swap_sprite_sb(r);
 
         // Tell the rendering thread to go.
@@ -377,22 +377,26 @@ void render_sprites(renderer* r, sprite* sprites_buffer)
         // Sprites are sorted by texture ID so render until texture 
         // switch then render some more
         int num_sprites = sb_count(sprites_buffer);
+        upload_texture(r, sprites_buffer[0].tex);
+        switchTexture(r, sprites_buffer[0].tex);
         int last_tex_id = sprites_buffer[0].tex->id;
         float* vert_buffer = NULL;
-        float* tex_coord_buffer = NULL;
+        float* tex_coord_buffer = NULL; // tbd hoist up to renderer to avoid allocs
         for (int i = 0; i < num_sprites; ++i) {
                 sprite* s = &sprites_buffer[i];
+
                 vert_buffer = calc_verts(s, vert_buffer);
                 tex_coord_buffer = calc_tex_coords(s, tex_coord_buffer);
 
                 if (s->tex->id != last_tex_id || i == num_sprites - 1) {
-                        if (!s->tex->uploaded) {
-                                upload_texture(r, s->tex);
-                        }
                         // draw current buffers
                         draw_buffers(r, vert_buffer, tex_coord_buffer);
 
                         // switch to new texture reset everything
+                        if (!s->tex->uploaded) {
+                                upload_texture(r, s->tex);
+
+                        }
                         switchTexture(r, s->tex);
                         last_tex_id = s->tex->id;
                         sb_reset(vert_buffer);

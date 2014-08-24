@@ -70,7 +70,7 @@ bool atlas_sprite_id(atlas* a, sprite* s,
                      float width, float height,
                      float rotation)
 {
-        if (sprite_id <= 0 || sprite_id >= sb_count(a->rect_sb)) {
+        if (sprite_id < 0 || sprite_id >= sb_count(a->rect_sb)) {
                 return false;
         }
 

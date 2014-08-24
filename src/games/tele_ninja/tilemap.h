@@ -1,32 +1,26 @@
 #pragma once
 
 #include <stdbool.h>
-
-#include <render/spritebatch.h>
-
-#define LAYER_MAX_LAYERS 5
-#define LAYER_MAX_WIDTH 200
-#define LAYER_MAX_HEIGHT 200
+#include <stdint.h>
 
 typedef struct layer {
-        short tile[LAYER_MAX_WIDTH][LAYER_MAX_HEIGHT];
+        int16_t* tile_sb;
 } layer;
 
 typedef struct tilemap {
-        int tiles_wide;
-        int tiles_high;
-        int tile_width;
-        int tile_height;
-        int layer_count;
-        layer layers[LAYER_MAX_LAYERS];
-        //spritebatch spritebatch;
+        int32_t tiles_wide;
+        int32_t tiles_high;
+        int32_t tile_width;
+        int32_t tile_height;
+        layer* layer_sb;
+        struct atlas* atlas;
+        struct sprite* sprite_sb;
 } tilemap;
 
-// Initializes the specified tilemap from the specified pyxel map file,
-// sprite atlas info, and sprite sheet.
+// Initializes the specified tilemap from the specified pyxel map file
+// and atlas. This does not take ownership of the atlas.
 // Returns true if initialization was successful, false otherwise.
-bool tilemap_init(tilemap*, const char* map_file, 
-                  const char* atlas_file, const char* sprite_sheet_file);
-                  
-// Draws the tile map.
-void tilemap_draw(tilemap*);
+bool tilemap_init(tilemap*, struct atlas*, const char* map_file);
+
+// Frees any allocation done by the tilemap and resets it to the default state.
+void tilemap_reset(tilemap*);

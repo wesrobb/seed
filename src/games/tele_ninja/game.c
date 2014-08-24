@@ -7,8 +7,8 @@
 #include <glew/glew.h>
 #include <glfw/glfw3.h>
 
+#include <core/stretchy_buffer.h>
 #include <log/log.h>
-
 #include <render/atlas.h>
 #include <render/camera.h>
 #include <render/render.h>
@@ -21,7 +21,9 @@
 
 #include "tilemap.h"
 
-//static tilemap s_tile_map;
+static tilemap s_tile_map;
+static atlas s_dirt_atlas;
+static texture s_dirt_tex;
 //static spritebatch s_player;
 static atlas s_atlas;
 static sprite s_player_sprite;
@@ -36,9 +38,9 @@ bool Game_init(GLFWwindow* window,
 
         // Todo: Load shaders path from config file.
         s_renderer = render_create(window,
-                                    virtual_width, virtual_height,
-                                    "data/shaders/vertex.glsl",
-                                    "data/shaders/fragment.glsl");
+                                   virtual_width, virtual_height,
+                                   "data/shaders/vertex.glsl",
+                                   "data/shaders/fragment.glsl");
         if (!s_renderer) {
                 LOGERR("%s", "Failed to initialize renderer");
                 return false;
@@ -55,9 +57,9 @@ bool Game_init(GLFWwindow* window,
         //s_player_sprite.height = 50;
         //s_player_sprite.tex = &s_player_texture;
 
-        /*tilemap_init(&s_tile_map, "data/maps/DirtMap.txt",
-                     "data/maps/DirtSprites.txt",
-                     "data/maps/DirtSprites.png");*/
+        texture_init(&s_dirt_tex, "data/maps/DirtSprites.png");
+        atlas_init(&s_dirt_atlas, &s_dirt_tex, "data/maps/DirtSprites.txt");
+        tilemap_init(&s_tile_map, &s_dirt_atlas, "data/maps/DirtMap.txt");
 
         /*spritebatch_init(&s_player, "data/anims/walk_cycle.txt",
                          "data/anims/walk_cycle.png");*/
@@ -70,6 +72,7 @@ bool Game_init(GLFWwindow* window,
 
 void Game_update(double dt)
 {
+        render_add_sprites(s_renderer, s_tile_map.sprite_sb, sb_count(s_tile_map.sprite_sb));
         render_add_sprite(s_renderer, &s_player_sprite);
         Fps_log();
 
@@ -79,8 +82,7 @@ void Game_update(double dt)
 }
 
 void Game_render(double interpolation)
-{
-}
+{}
 
 void Game_cleanup(void)
 {
@@ -95,6 +97,6 @@ void Game_mousePressed()
         walk_cycle_index = ++walk_cycle_index % 2;
         /*spritebatch_remove_sprite(&s_player, &s_player_sprite);
         s_player_sprite = spritebatch_add_sprite_id(&s_player, walk_cycle_index,
-                                                    300, 150, 0, 0, 20, 40, 0);*/
+        300, 150, 0, 0, 20, 40, 0);*/
 }
 
