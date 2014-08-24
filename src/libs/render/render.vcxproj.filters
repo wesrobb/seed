@@ -5,9 +5,9 @@
     <ClCompile Include="file_utils.c" />
     <ClCompile Include="gl_utils.c" />
     <ClCompile Include="render.c" />
-    <ClCompile Include="spritebatch.c" />
     <ClCompile Include="stb_image.c" />
     <ClCompile Include="texture.c" />
+    <ClCompile Include="atlas.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="camera.h" />
@@ -16,7 +16,7 @@
     <ClInclude Include="khash.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="sprite.h" />
-    <ClInclude Include="spritebatch.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="atlas.h" />
   </ItemGroup>
 </Project>

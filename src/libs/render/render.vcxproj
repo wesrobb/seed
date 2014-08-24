@@ -74,7 +74,7 @@
     <ClCompile Include="file_utils.c" />
     <ClCompile Include="gl_utils.c" />
     <ClCompile Include="render.c" />
-    <ClCompile Include="spritebatch.c" />
+    <ClCompile Include="atlas.c" />
     <ClCompile Include="stb_image.c" />
     <ClCompile Include="texture.c" />
   </ItemGroup>
@@ -85,7 +85,7 @@
     <ClInclude Include="khash.h" />
     <ClInclude Include="render.h" />
     <ClInclude Include="sprite.h" />
-    <ClInclude Include="spritebatch.h" />
+    <ClInclude Include="atlas.h" />
     <ClInclude Include="texture.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

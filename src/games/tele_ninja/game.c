@@ -9,10 +9,10 @@
 
 #include <log/log.h>
 
+#include <render/atlas.h>
 #include <render/camera.h>
 #include <render/render.h>
 #include <render/sprite.h>
-//#include <render/spritebatch.h>
 #include <render/texture.h>
 
 #include "entity.h"
@@ -23,6 +23,7 @@
 
 //static tilemap s_tile_map;
 //static spritebatch s_player;
+static atlas s_atlas;
 static sprite s_player_sprite;
 static texture s_player_texture;
 static int walk_cycle_index = 0;
@@ -46,12 +47,13 @@ bool Game_init(GLFWwindow* window,
         Fps_init();
 
         texture_init(&s_player_texture, "data/anims/walk_cycle.png");
-        s_player_sprite.x_pos = 50;
-        s_player_sprite.y_pos = 50;
-        s_player_sprite.width = 100;
-        s_player_sprite.height = 50;
-        //texture_upload(&s_player_texture, s_renderer);
-        s_player_sprite.tex = &s_player_texture;
+        atlas_init(&s_atlas, &s_player_texture, "data/anims/walk_cycle.txt");
+        atlas_sprite_name(&s_atlas, &s_player_sprite, "walk_cycle_1.png", 50, 50, 0, 0, 50, 50, 0);
+        //s_player_sprite.x_pos = 50;
+        //s_player_sprite.y_pos = 50;
+        //s_player_sprite.width = 100;
+        //s_player_sprite.height = 50;
+        //s_player_sprite.tex = &s_player_texture;
 
         /*tilemap_init(&s_tile_map, "data/maps/DirtMap.txt",
                      "data/maps/DirtSprites.txt",
