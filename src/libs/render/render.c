@@ -50,7 +50,7 @@ int compare_sprites(const void* lhs, const void* rhs);
 uint32_t __stdcall render_func(void* renderer);
 void swap_sprite_sb(renderer* r);
 sprite* prepare_back_buffer(renderer*);
-void render_sprites(renderer* r, sprite* sprites_buffer);
+void render_sprites(renderer* r, sprite* sprites_sb);
 float* calc_verts(sprite* s, float* vert_buffer);
 float* calc_tex_coords(sprite* s, float* tex_coord_buffer);
 void draw_buffers(renderer*, float* vert_buffer, float* tex_coord_buffer);
@@ -357,13 +357,14 @@ sprite* prepare_back_buffer(renderer* r)
         return sprites;
 }
 
-void render_sprites(renderer* r, sprite* sprites_buffer)
+void render_sprites(renderer* r, sprite* sprites_sb)
 {
         glClearColor(0.4f, 0.7f, 1.0f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-        if (sb_count(sprites_buffer) == 0) {
+        int num_sprites = sb_count(sprites_sb);
+        if (num_sprites == 0) {
                 return;
         }
 
@@ -375,37 +376,36 @@ void render_sprites(renderer* r, sprite* sprites_buffer)
         glUniformMatrix4fv(cam_uniform, 1, GL_FALSE, cam_mat->mat);
 
         // Sprites are sorted by texture ID so render until texture 
-        // switch then render some more
-        int num_sprites = sb_count(sprites_buffer);
-        upload_texture(r, sprites_buffer[0].tex);
-        switchTexture(r, sprites_buffer[0].tex);
-        int last_tex_id = sprites_buffer[0].tex->id;
-        float* vert_buffer = NULL;
-        float* tex_coord_buffer = NULL; // tbd hoist up to renderer to avoid allocs
+        // switch then render some more. Kick off the first sprite.
+        float* vert_sb = NULL;
+        float* tex_coord_sb = NULL; // todo hoist up to renderer to avoid allocs
         for (int i = 0; i < num_sprites; ++i) {
-                sprite* s = &sprites_buffer[i];
+                sprite* s = &sprites_sb[i];
+                sprite* next = NULL;
+                if (i < num_sprites - 1) {
+                        next = &sprites_sb[i + 1];
+                }
 
-                vert_buffer = calc_verts(s, vert_buffer);
-                tex_coord_buffer = calc_tex_coords(s, tex_coord_buffer);
+                vert_sb = calc_verts(s, vert_sb);
+                tex_coord_sb = calc_tex_coords(s, tex_coord_sb);
 
-                if (s->tex->id != last_tex_id || i == num_sprites - 1) {
-                        // draw current buffers
-                        draw_buffers(r, vert_buffer, tex_coord_buffer);
-
-                        // switch to new texture reset everything
+                if (next == NULL || s->tex->id != next->tex->id) {
+                        // switch to new texture and draw
                         if (!s->tex->uploaded) {
                                 upload_texture(r, s->tex);
-
                         }
                         switchTexture(r, s->tex);
-                        last_tex_id = s->tex->id;
-                        sb_reset(vert_buffer);
-                        sb_reset(tex_coord_buffer);
+                        draw_buffers(r, vert_sb, tex_coord_sb);
+                        sb_reset(vert_sb);
+                        sb_reset(tex_coord_sb);
                 }
         }
 
-        sb_free(vert_buffer);
-        sb_free(tex_coord_buffer);
+        // draw the all the sprites from the final texture switch.
+        draw_buffers(r, vert_sb, tex_coord_sb);
+
+        sb_free(vert_sb);
+        sb_free(tex_coord_sb);
 
         glUseProgram(0);
 }
@@ -463,7 +463,7 @@ float* calc_tex_coords(sprite* s, float* tex_coord_buffer)
         float h = s->tex_rect.h == 0.0f ? tex_height : s->tex_rect.h;
 
         // Bottom left
-        float bot_left_s = s->tex_rect.x / tex_width;
+        float bot_left_s = x / tex_width;
         float bot_left_t = (y + h) / tex_height;
 
         // Top left

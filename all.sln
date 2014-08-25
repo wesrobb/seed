@@ -23,11 +23,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "tele_ninja", "src\games\tel
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "core", "src\libs\core\core.vcxproj", "{C83785C2-FDD3-4B19-B00D-63245E07AFFC}"
 EndProject
-Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{B47E9255-1C6A-494C-BDD2-FB0116C7DF65}"
-	ProjectSection(SolutionItems) = preProject
-		Performance1.psess = Performance1.psess
-	EndProjectSection
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -59,8 +54,5 @@ Global
 		{1A9078DF-B7E6-4C51-88D5-16B3F382D721} = {505B743C-1929-4173-BF54-06F2FAEB7B0A}
 		{F668A17A-2F82-4244-B0E6-B97F177D4BC0} = {4F90468C-0A0E-4EC6-9CF6-2746DCFD160E}
 		{C83785C2-FDD3-4B19-B00D-63245E07AFFC} = {505B743C-1929-4173-BF54-06F2FAEB7B0A}
-	EndGlobalSection
-	GlobalSection(Performance) = preSolution
-		HasPerformanceSessions = true
 	EndGlobalSection
 EndGlobal

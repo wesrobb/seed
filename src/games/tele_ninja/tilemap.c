@@ -64,7 +64,7 @@ bool parse_map_file(tilemap* tm, const char* map_file)
                                        (int)(tm->tiles_high * tm->tiles_wide));
                 for (int32_t i = tm->tiles_high - 1; i >= 0; i--) {
                         for (int32_t j = 0; j < tm->tiles_wide; ++j) {
-                                fscanf(map, "%hd,", tile++);
+                                fscanf(map, "%hd,", &tile[tm->tiles_wide * i + j]);
                         }
                 }
         }
