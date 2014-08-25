@@ -302,7 +302,11 @@ int compare_sprites(const void* lhs, const void* rhs)
         const sprite* a = lhs;
         const sprite* b = rhs;
 
-        return a->tex->id - b->tex->id;
+        if (a->depth == b->depth) {
+                return a->tex->id - b->tex->id;
+        }
+        
+        return a->depth - b->depth;
 }
 
 uint32_t __stdcall render_func(void* data)

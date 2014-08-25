@@ -51,7 +51,9 @@ bool Game_init(GLFWwindow* window,
         texture_init(&s_player_texture, "data/anims/walk_cycle.png");
         atlas_init(&s_atlas, &s_player_texture, "data/anims/walk_cycle.txt");
         atlas_sprite_name(&s_atlas, &s_player_sprite1, "walk_cycle_1.png", 50, 50, 0, 0, 50, 50, 0);
-        atlas_sprite_name(&s_atlas, &s_player_sprite2, "walk_cycle_0.png", 150, 150, 0, 0, 50, 50, 0);
+        atlas_sprite_name(&s_atlas, &s_player_sprite2, "walk_cycle_0.png", 250, 100, 0, 0, 50, 50, 0);
+        s_player_sprite1.depth = 10;
+        s_player_sprite2.depth = 10;
         //s_player_sprite.x_pos = 50;
         //s_player_sprite.y_pos = 50;
         //s_player_sprite.width = 100;

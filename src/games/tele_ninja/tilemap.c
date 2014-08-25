@@ -89,6 +89,7 @@ void update_sprites(tilemap* tm)
                                                 (float)tm->tile_width,
                                                 (float)tm->tile_height,
                                                 0);
+                                s->depth = h;
                         }
                 }
         }

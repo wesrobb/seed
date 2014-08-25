@@ -17,5 +17,6 @@ typedef struct sprite {
         float rotation;
         struct texture* tex;
         rect tex_rect; // Region of the texture to be drawn for this sprite.
+        int8_t depth;
 } sprite;
 
