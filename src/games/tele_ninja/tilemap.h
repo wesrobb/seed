@@ -17,7 +17,7 @@ typedef struct tilemap {
         struct sprite* sprite_sb;
 } tilemap;
 
-// Initializes the specified tilemap from the specified pyxel map file
+// Initializes the specified tilemap from the specified pyxel map json file
 // and atlas. This does not take ownership of the atlas.
 // Returns true if initialization was successful, false otherwise.
 bool tilemap_init(tilemap*, struct atlas*, const char* map_file);

@@ -8,6 +8,7 @@
     <ClInclude Include="rect.h" />
     <ClInclude Include="condition_var.h" />
     <ClInclude Include="types.h" />
+    <ClInclude Include="json.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="mutex.c" />
@@ -15,5 +16,6 @@
     <ClCompile Include="thread.c" />
     <ClCompile Include="rect.c" />
     <ClCompile Include="condition_var.c" />
+    <ClCompile Include="json.c" />
   </ItemGroup>
 </Project>

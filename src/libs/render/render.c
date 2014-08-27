@@ -466,34 +466,23 @@ float* calc_tex_coords(sprite* s, float* tex_coord_buffer)
         float w = s->tex_rect.w == 0.0f ? tex_width : s->tex_rect.w;
         float h = s->tex_rect.h == 0.0f ? tex_height : s->tex_rect.h;
 
-        // Bottom left
-        float bot_left_s = x / tex_width;
-        float bot_left_t = (y + h) / tex_height;
+        float tex_bot = (y + h) / tex_height;
+        float tex_top = y / tex_height;
+        float tex_left = s->flip_x ? (x / tex_width) : ((x + w) / tex_width);
+        float tex_right = s->flip_x ? ((x + w) / tex_width) : (x / tex_width);
 
-        // Top left
-        float top_left_s = x / tex_width;
-        float top_left_t = y / tex_height;
-
-        // Top right
-        float top_right_s = (x + w) / tex_width;
-        float top_right_t = y / tex_height;
-
-        // Bottom right
-        float bot_right_s = (x + w) / tex_width;
-        float bot_right_t = (y + h) / tex_height;
-
-        sb_push(tex_coord_buffer, bot_left_s);
-        sb_push(tex_coord_buffer, bot_left_t);
-        sb_push(tex_coord_buffer, top_left_s);
-        sb_push(tex_coord_buffer, top_left_t);
-        sb_push(tex_coord_buffer, top_right_s);
-        sb_push(tex_coord_buffer, top_right_t);
-        sb_push(tex_coord_buffer, bot_left_s);
-        sb_push(tex_coord_buffer, bot_left_t);
-        sb_push(tex_coord_buffer, top_right_s);
-        sb_push(tex_coord_buffer, top_right_t);
-        sb_push(tex_coord_buffer, bot_right_s);
-        sb_push(tex_coord_buffer, bot_right_t);
+        sb_push(tex_coord_buffer, tex_left);
+        sb_push(tex_coord_buffer, tex_bot);
+        sb_push(tex_coord_buffer, tex_left);
+        sb_push(tex_coord_buffer, tex_top);
+        sb_push(tex_coord_buffer, tex_right);
+        sb_push(tex_coord_buffer, tex_top);
+        sb_push(tex_coord_buffer, tex_left);
+        sb_push(tex_coord_buffer, tex_bot);
+        sb_push(tex_coord_buffer, tex_right);
+        sb_push(tex_coord_buffer, tex_top);
+        sb_push(tex_coord_buffer, tex_right);
+        sb_push(tex_coord_buffer, tex_bot);
 
         return tex_coord_buffer;
 }
