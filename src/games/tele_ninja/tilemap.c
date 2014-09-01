@@ -3,11 +3,11 @@
 #include <assert.h>
 #include <stdio.h>
 
-#include <core/parson.h>
-#include <core/stretchy_buffer.h>
-#include <log/log.h>
-#include <render/atlas.h>
-#include <render/sprite.h>
+#include <seed/atlas.h>
+#include <seed/log.h>
+#include <seed/parson.h>
+#include <seed/sprite.h>
+#include <seed/stretchy_buffer.h>
 
 bool parse_map_file(tilemap* tm, const char* map_file);
 void update_sprites(tilemap* tm);

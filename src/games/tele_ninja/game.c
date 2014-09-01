@@ -7,13 +7,13 @@
 #include <glew/glew.h>
 #include <glfw/glfw3.h>
 
-#include <core/stretchy_buffer.h>
-#include <log/log.h>
-#include <render/atlas.h>
-#include <render/camera.h>
-#include <render/render.h>
-#include <render/sprite.h>
-#include <render/texture.h>
+#include <seed/atlas.h>
+#include <seed/camera.h>
+#include <seed/log.h>
+#include <seed/render.h>
+#include <seed/sprite.h>
+#include <seed/stretchy_buffer.h>
+#include <seed/texture.h>
 
 #include "entity.h"
 #include "fps.h"

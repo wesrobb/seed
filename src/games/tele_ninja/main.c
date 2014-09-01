@@ -3,10 +3,11 @@
 
 #include <Windows.h>
 
-#include <core/thread.h>
 #include <glew/glew.h>
 #include <glfw/glfw3.h>
-#include <log/log.h>
+
+#include <seed/log.h>
+#include <seed/thread.h>
 
 #include "game.h"
 

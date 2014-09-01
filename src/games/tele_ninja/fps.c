@@ -4,7 +4,8 @@
 #include <string.h>
 
 #include <glfw/glfw3.h>
-#include <log/log.h>
+
+#include <seed/log.h>
 
 #define NUM_FRAMES 120
 static double frame_times[NUM_FRAMES];

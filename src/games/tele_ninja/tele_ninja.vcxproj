@@ -46,13 +46,13 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../../build/core/include;../../../build/log/include;../../../build/render/include;../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../build/seed/include;../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BAD;GLEW_STATIC;_UNICODE;UNICODE;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalLibraryDirectories>../../../build/core/lib;../../../build/log/lib;../../../build/render/lib;../../../ext/glew/lib;../../../ext/glfw/lib;../../../ext/kazmath/lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3_d.lib;kazmath_d.lib;glew32sd.lib;core_d.lib;log_d.lib;render_d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../../build/seed/lib;../../../ext/glew/lib;../../../ext/glfw/lib;../../../ext/kazmath/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3_d.lib;kazmath_d.lib;glew32sd.lib;seed_d.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <AdditionalOptions>
       </AdditionalOptions>
@@ -65,15 +65,15 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <AdditionalIncludeDirectories>../../../build/core/include;../../../build/log/include;../../../build/render/include;../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../build/seed/include;../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>BAD;GLEW_STATIC;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <AdditionalLibraryDirectories>../../../build/core/lib;../../../build/log/lib;../../../build/render/lib;../../../ext/glew/lib;../../../ext/glfw/lib;../../../ext/kazmath/lib</AdditionalLibraryDirectories>
-      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3.lib;kazmath.lib;glew32s.lib;core.lib;log.lib;render.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>../../../build/seed/lib;../../../ext/glew/lib;../../../ext/glfw/lib;../../../ext/kazmath/lib</AdditionalLibraryDirectories>
+      <AdditionalDependencies>opengl32.lib;glu32.lib;glfw3.lib;kazmath.lib;glew32s.lib;seed.lib;kernel32.lib;user32.lib;gdi32.lib;winspool.lib;comdlg32.lib;advapi32.lib;shell32.lib;ole32.lib;oleaut32.lib;uuid.lib;odbc32.lib;odbccp32.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <TreatLinkerWarningAsErrors>true</TreatLinkerWarningAsErrors>
       <AdditionalOptions>
       </AdditionalOptions>
