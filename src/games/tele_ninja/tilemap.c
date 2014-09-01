@@ -3,6 +3,7 @@
 #include <assert.h>
 #include <stdio.h>
 
+#include <core/parson.h>
 #include <core/stretchy_buffer.h>
 #include <log/log.h>
 #include <render/atlas.h>
@@ -37,38 +38,41 @@ void tilemap_reset(tilemap* tm)
 
 bool parse_map_file(tilemap* tm, const char* map_file)
 {
-        FILE* map = fopen(map_file, "r");
-        if (!map) {
-                LOGERR("Failed to open map file %s", map_file);
+        JSON_Value* root = json_parse_file(map_file);
+        if (!root) {
+                LOGERR("Failed to parse json from map file %s", map_file);
                 return false;
         }
+        JSON_Object* root_obj = json_value_get_object(root);
+        tm->tiles_wide = (int32_t)json_object_get_number(root_obj, "tileswide");
+        tm->tiles_high = (int32_t)json_object_get_number(root_obj, "tileshigh");
+        tm->tile_width = (int32_t)json_object_get_number(root_obj, "tilewidth");
+        tm->tile_height = (int32_t)json_object_get_number(root_obj, "tileheight");
 
-        // Read header
-        fscanf(map, "tileswide %d\n", &tm->tiles_wide);
-        fscanf(map, "tileshigh %d\n", &tm->tiles_high);
-        fscanf(map, "tilewidth %d\n", &tm->tile_width);
-        fscanf(map, "tileheight %d\n", &tm->tile_height);
-
-        while (!feof(map)) {
-                int layer_index = -1;
-                fscanf(map, "\nlayer %d\n", &layer_index);
-
-                // No more layers.
-                if (layer_index == -1) {
-                        break;
-                }
-
+        JSON_Array* layer_arr = json_object_get_array(root_obj, "layers");
+        for (size_t i = 0; i < json_array_get_count(layer_arr); ++i) {
                 layer* l = sb_add(tm->layer_sb, 1);
-                l->tile_sb = NULL;
-                int16_t* tile = sb_add(l->tile_sb, 
-                                       (int)(tm->tiles_high * tm->tiles_wide));
-                for (int32_t i = tm->tiles_high - 1; i >= 0; i--) {
-                        for (int32_t j = 0; j < tm->tiles_wide; ++j) {
-                                fscanf(map, "%hd,", &tile[tm->tiles_wide * i + j]);
-                        }
+                memset(l, 0, sizeof(*l));
+
+                JSON_Object* layer_obj = json_array_get_object(layer_arr, i);
+                l->index = (int16_t)json_object_get_number(layer_obj, "number");
+                strcpy(l->name, json_object_get_string(layer_obj, "name"));
+
+                JSON_Array* tile_arr = json_object_get_array(layer_obj, "tiles");
+                size_t tile_count = json_array_get_count(tile_arr);
+                tile* tile_start = sb_add(l->tile_sb, (int)tile_count);
+                for (size_t j = 0; j < tile_count; ++j) {
+                        JSON_Object* tile_object = json_array_get_object(tile_arr, j);
+                        tile* t = &tile_start[j];
+                        t->value = (int16_t)json_object_get_number(tile_object, "tile");
+                        t->flip_x = (bool)json_object_get_boolean(tile_object, "flipX");
+                        t->pos.x = (float)json_object_get_number(tile_object, "x");
+                        t->pos.y = (float)json_object_get_number(tile_object, "y");
+                        t->rot = (float)json_object_get_number(tile_object, "rot");
                 }
         }
 
+        json_value_free(root);
         return true;
 }
 
@@ -77,19 +81,26 @@ void update_sprites(tilemap* tm)
         for (int32_t h = 0; h < sb_count(tm->layer_sb); ++h) {
                 for (int32_t i = 0; i < tm->tiles_high; ++i) {
                         for (int32_t j = 0; j < tm->tiles_wide; ++j) {
-                                int16_t tile = tm->layer_sb[h].tile_sb[tm->tiles_wide * i + j];
-                                if (tile == -1) {
+                                layer* l = &tm->layer_sb[h];
+                                tile* t = &l->tile_sb[tm->tiles_wide * i + j];
+                                if (t->value == -1) {
                                         continue;
                                 }
                                 sprite* s = sb_add(tm->sprite_sb, 1);
-                                atlas_sprite_id(tm->atlas, s, tile,
-                                                (float)j * tm->tile_width,
-                                                (float)i * tm->tile_height,
-                                                0, 0,
-                                                (float)tm->tile_width,
-                                                (float)tm->tile_height,
-                                                0);
-                                s->depth = h;
+                                s->flip_x = t->flip_x;
+
+                                // PyxelEdit's y index is backwards.
+                                float y_index = tm->tiles_high - t->pos.y - 1;
+
+                                float x_pos = t->pos.x * tm->tile_width;
+                                float y_pos = y_index * tm->tile_height;
+                                atlas_sprite_id(tm->atlas, s, t->value,
+                                                x_pos, y_pos,
+                                                x_pos + (tm->tile_width / 2.0f), 
+                                                y_pos + (tm->tile_height / 2.0f),
+                                                1.0f,
+                                                t->rot * -90); // 0 = 0, 1 = 90, 2 = 180 etc.
+                                s->depth = l->index + 100; // Todo: Deal with tilemap depth.
                         }
                 }
         }

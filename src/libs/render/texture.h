@@ -5,6 +5,7 @@
 
 typedef struct texture {
         uint32_t id;
+        uint32_t gl_id;
 
         int width;
         int height;
@@ -22,4 +23,4 @@ bool texture_init(texture*, const char* location);
 
 // Deletes the texture data and resets all fields to 0.
 // Also removes the texture data from GPU memory if it was uploaded.
-void texture_free(texture* t, struct renderer* r);
+void texture_reset(texture* t, struct renderer* r);

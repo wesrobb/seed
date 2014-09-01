@@ -1,6 +1,8 @@
 #include <inttypes.h>
 #include <stdio.h>
 
+#include <Windows.h>
+
 #include <core/thread.h>
 #include <glew/glew.h>
 #include <glfw/glfw3.h>
@@ -16,13 +18,13 @@ static void errorCallback(int error, const char* description)
 static void mouseButtonCallback(GLFWwindow* window, 
                                 int button, int action, int mods)
 {
-        Game_mousePressed();
+        game_mouse_pressed();
 }
 
 static void mouseMovedCallback(GLFWwindow* window, 
                                double x_pos, double y_pos)
 {
-        Game_mouseMoved(x_pos, y_pos);
+        game_mouse_moved(x_pos, y_pos);
 }
 
 static void keyCallback(GLFWwindow* window, int key, int scancode, 
@@ -31,19 +33,22 @@ static void keyCallback(GLFWwindow* window, int key, int scancode,
         if (key == GLFW_KEY_ESCAPE && action == GLFW_PRESS) {
                 glfwSetWindowShouldClose(window, GL_TRUE);
         }
+
+        if (action == GLFW_PRESS) {
+                game_key_pressed(key);
+        }
+
+        if (action == GLFW_RELEASE) {
+                game_key_released(key);
+        }
 }
 
 static uint32_t _screen_width = 1280;
 static uint32_t _screen_height = 720;
-static uint32_t _virtual_width = 640;
-static uint32_t _virtual_height = 360;
+static uint32_t _virtual_width = 576;
+static uint32_t _virtual_height = 320;
 
-// Game loop based on last implemetation provided at:
-// http://www.koonsolo.com/news/dewitters-Gameloop
-#define TICKS_PER_SEC 120;
-static const double update_interval = 1.0 / TICKS_PER_SEC;
-static const double skip_ticks = 1000.0 / TICKS_PER_SEC;
-static const uint32_t max_frameskips = 5;
+#define EXPECTED_FRAME_TIME 8.3 // ms per frame
 
 int32_t main(int32_t argc, char* args[])
 {
@@ -81,7 +86,7 @@ int32_t main(int32_t argc, char* args[])
                 return return_code;
         }
 
-        if (!Game_init(window, _virtual_width, _virtual_height)) {
+        if (!game_init(window, _virtual_width, _virtual_height)) {
                 goto cleanup_window;
         }
 
@@ -90,21 +95,22 @@ int32_t main(int32_t argc, char* args[])
         double interpolation = 0.0f;
 
         while (!glfwWindowShouldClose(window)) {
-                double current_time = glfwGetTime() * 1000; // ms
-                while (current_time > tick && game_updates < max_frameskips) {
-                       Game_update(update_interval);
-                       tick += skip_ticks;
-                       game_updates++;
+                double start_time = glfwGetTime() * 1000; // ms
+                game_update(EXPECTED_FRAME_TIME);
+                glfwPollEvents();
+
+                double frame_time = (glfwGetTime() * 1000) - start_time;
+                if (frame_time < EXPECTED_FRAME_TIME) {
+                        Sleep((DWORD)(EXPECTED_FRAME_TIME - frame_time));
                 }
 
-                interpolation = (double)(current_time + skip_ticks - tick) /
-                                skip_ticks;
-                Game_render(interpolation);
-                game_updates = 0;
-
-                glfwPollEvents();
+                double total_time = (glfwGetTime() * 1000) - start_time;
+                static uint32_t frame_count = 0;
+                if (++frame_count % 500 == 0) {
+                        LOGINFO("Frame_time %fms", total_time);
+                }
         }
-        Game_cleanup();
+        game_cleanup();
         LOGDBG("%s", "Game stopping");
         return_code = 0;
 

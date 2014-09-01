@@ -71,7 +71,7 @@ void switchTexture(renderer* r, texture* t)
         assert(t);
 
         glActiveTexture(GL_TEXTURE0 + r->tex_unit);
-        glBindTexture(GL_TEXTURE_2D, t->id);
+        glBindTexture(GL_TEXTURE_2D, t->gl_id);
 }
 
 void bindSampler(uint32_t tex_unit)
@@ -277,7 +277,7 @@ void render_delete_texture(renderer* r, texture* t)
         assert(t);
 
         glfwMakeContextCurrent(r->window);
-        glDeleteTextures(1, &t->id);
+        glDeleteTextures(1, &t->gl_id);
 }
 
 void render_submit(renderer* r)
@@ -303,10 +303,10 @@ int compare_sprites(const void* lhs, const void* rhs)
         const sprite* b = rhs;
 
         if (a->depth == b->depth) {
-                return a->tex->id - b->tex->id;
+                return b->tex->id - a->tex->id;
         }
         
-        return a->depth - b->depth;
+        return b->depth - a->depth;
 }
 
 uint32_t __stdcall render_func(void* data)
@@ -363,7 +363,7 @@ sprite* prepare_back_buffer(renderer* r)
 
 void render_sprites(renderer* r, sprite* sprites_sb)
 {
-        glClearColor(0.4f, 0.7f, 1.0f, 1.0f);
+        glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
@@ -405,9 +405,6 @@ void render_sprites(renderer* r, sprite* sprites_sb)
                 }
         }
 
-        // draw the all the sprites from the final texture switch.
-        draw_buffers(r, vert_sb, tex_coord_sb);
-
         sb_free(vert_sb);
         sb_free(tex_coord_sb);
 
@@ -416,21 +413,27 @@ void render_sprites(renderer* r, sprite* sprites_sb)
 
 float* calc_verts(sprite* s, float* vert_buffer)
 {
+        float tex_width = s->tex_rect.w == 0.0f ? s->tex->width : s->tex_rect.w;
+        float width = tex_width * s->scale;
+
+        float tex_height = s->tex_rect.h == 0.0f ? s->tex->height : s->tex_rect.h;
+        float height = tex_height * s->scale;
+
         kmVec2 bl; // bottom left
         bl.x = s->x_pos;
         bl.y = s->y_pos;
 
         kmVec2 br; // bottom right
-        br.x = s->x_pos + s->width;
+        br.x = s->x_pos + width;
         br.y = s->y_pos;
 
         kmVec2 tl; // top left
         tl.x = s->x_pos;
-        tl.y = s->y_pos + s->height;
+        tl.y = s->y_pos + height;
 
         kmVec2 tr; // top right
-        tr.x = s->x_pos + s->width;
-        tr.y = s->y_pos + s->height;
+        tr.x = s->x_pos + width;
+        tr.y = s->y_pos + height;
 
         if (s->rotation != 0.0f) {
                 kmVec2 anchor;
@@ -468,8 +471,8 @@ float* calc_tex_coords(sprite* s, float* tex_coord_buffer)
 
         float tex_bot = (y + h) / tex_height;
         float tex_top = y / tex_height;
-        float tex_left = s->flip_x ? (x / tex_width) : ((x + w) / tex_width);
-        float tex_right = s->flip_x ? ((x + w) / tex_width) : (x / tex_width);
+        float tex_left = s->flip_x ? ((x + w) / tex_width) : (x / tex_width);
+        float tex_right = s->flip_x ? (x / tex_width) : ((x + w) / tex_width);
 
         sb_push(tex_coord_buffer, tex_left);
         sb_push(tex_coord_buffer, tex_bot);
@@ -524,8 +527,8 @@ bool upload_texture(renderer* r, texture* t)
                 return true;
         }
 
-        glGenTextures(1, &t->id);
-        glBindTexture(GL_TEXTURE_2D, t->id);
+        glGenTextures(1, &t->gl_id);
+        glBindTexture(GL_TEXTURE_2D, t->gl_id);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

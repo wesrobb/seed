@@ -8,6 +8,8 @@
 
 #include "render.h"
 
+static uint32_t s_next_id;
+
 unsigned char* stbi_load(const char*, int*, int*, int*, int);
 void stbi_image_free(void *);
 
@@ -31,18 +33,20 @@ bool texture_init(texture* t, const char* location)
                 return false;
         }
 
+        t->id = s_next_id++;
         t->uploaded = false;
 
         return true;
 }
 
-void texture_free(texture* t, renderer* r)
+void texture_reset(texture* t, renderer* r)
 {
         assert(t);
 
         render_delete_texture(r, t);
 
         t->id = -1;
+        t->gl_id = -1;
 
         t->width = 0;
         t->height = 0;

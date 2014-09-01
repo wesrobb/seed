@@ -6,24 +6,24 @@
 #include <glfw/glfw3.h>
 #include <log/log.h>
 
-#define NUM_FRAMES 10
+#define NUM_FRAMES 120
 static double frame_times[NUM_FRAMES];
 static double frame_time_last;
 static uint32_t frame_count;
-static double fps;
-static double draw_interval; // Time between draw calls in sec.
-static double last_draw_time;
+static double log_interval; // Time between draw calls in sec.
+static double last_log_time;
 
-void Fps_think()
+double Fps_think()
 {
         // save the frame time value between calls
         double ticks = glfwGetTime();
         frame_times[frame_count % NUM_FRAMES] = ticks - frame_time_last;
         frame_time_last = ticks;
         frame_count++;
+        return ticks;
 }
 
-void Fps_calc()
+double Fps_calc()
 {
         // Work out the current framerate
         uint32_t count;
@@ -41,29 +41,25 @@ void Fps_calc()
         new_fps /= count;
 
         // Now to make it an actual frames per second value...
-        fps = 1000.f / new_fps;
+        return 1 / new_fps;
 }
 
 void Fps_init()
 {
         memset(frame_times, 0, sizeof(frame_times));
         frame_count = 0;
-        fps = 0;
         frame_time_last = glfwGetTime();
-        draw_interval = 2.0;
-        last_draw_time = 0.0;
+        log_interval = 5.0;
+        last_log_time = 0.0;
 }
 
 void Fps_log()
 {
-        Fps_think();
-
-        double ticks = glfwGetTime();
-        if (ticks <= last_draw_time + draw_interval) {
+        double ticks = Fps_think();
+        if (ticks <= last_log_time + log_interval) {
                 return;
         }
 
-        last_draw_time = ticks;
-        Fps_calc();
-        LOGDBG("FPS: %.0f", fps);
+        last_log_time = ticks;
+        LOGDBG("FPS: %.0f", Fps_calc());
 }

@@ -3,8 +3,21 @@
 #include <stdbool.h>
 #include <stdint.h>
 
+#include <kazmath/vec2.h>
+
+#define LAYER_NAME_MAX_LEN 32
+
+typedef struct tile {
+        int16_t value;
+        bool flip_x;
+        kmVec2 pos;
+        float rot;
+} tile;
+
 typedef struct layer {
-        int16_t* tile_sb;
+        int16_t index;
+        tile* tile_sb;
+        char name[LAYER_NAME_MAX_LEN];
 } layer;
 
 typedef struct tilemap {

@@ -69,8 +69,8 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="condition_var.h" />
-    <ClInclude Include="json.h" />
     <ClInclude Include="mutex.h" />
+    <ClInclude Include="parson.h" />
     <ClInclude Include="rect.h" />
     <ClInclude Include="stretchy_buffer.h" />
     <ClInclude Include="thread.h" />
@@ -79,8 +79,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="condition_var.c" />
-    <ClCompile Include="json.c" />
     <ClCompile Include="mutex.c" />
+    <ClCompile Include="parson.c" />
     <ClCompile Include="rect.c" />
     <ClCompile Include="thread.c" />
     <ClCompile Include="win_error.c" />
