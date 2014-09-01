@@ -1,0 +1,61 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="platform">
+      <UniqueIdentifier>{4f720988-5c35-48a5-83da-769f2b701636}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="platform\condition_var.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\mutex.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\thread.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="platform\win_error.c">
+      <Filter>platform</Filter>
+    </ClCompile>
+    <ClCompile Include="atlas.c" />
+    <ClCompile Include="camera.c" />
+    <ClCompile Include="file_utils.c" />
+    <ClCompile Include="gl_utils.c" />
+    <ClCompile Include="log.c" />
+    <ClCompile Include="parson.c" />
+    <ClCompile Include="rect.c" />
+    <ClCompile Include="render.c" />
+    <ClCompile Include="stb_image.c" />
+    <ClCompile Include="texture.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="platform\condition_var.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\mutex.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\thread.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\types.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="platform\win_error.h">
+      <Filter>platform</Filter>
+    </ClInclude>
+    <ClInclude Include="atlas.h" />
+    <ClInclude Include="camera.h" />
+    <ClInclude Include="file_utils.h" />
+    <ClInclude Include="gl_utils.h" />
+    <ClInclude Include="khash.h" />
+    <ClInclude Include="log.h" />
+    <ClInclude Include="parson.h" />
+    <ClInclude Include="rect.h" />
+    <ClInclude Include="render.h" />
+    <ClInclude Include="sprite.h" />
+    <ClInclude Include="stretchy_buffer.h" />
+    <ClInclude Include="texture.h" />
+  </ItemGroup>
+</Project>
