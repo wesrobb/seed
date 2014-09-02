@@ -27,6 +27,7 @@
     <ClCompile Include="texture.c" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="assets.h" />
     <ClInclude Include="atlas.h" />
     <ClInclude Include="camera.h" />
     <ClInclude Include="file_utils.h" />
@@ -81,7 +82,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include;../../../ext/spine/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_UNICODE;UNICODE;_DEBUG;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
@@ -95,7 +96,7 @@
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>false</SDLCheck>
-      <AdditionalIncludeDirectories>../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>../../../ext/glew/include;../../../ext/glfw/include;../../../ext/kazmath/include;../../../ext/spine/include</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>GLEW_STATIC;_UNICODE;UNICODE;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>

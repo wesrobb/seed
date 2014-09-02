@@ -57,5 +57,6 @@
     <ClInclude Include="sprite.h" />
     <ClInclude Include="stretchy_buffer.h" />
     <ClInclude Include="texture.h" />
+    <ClInclude Include="assets.h" />
   </ItemGroup>
 </Project>
