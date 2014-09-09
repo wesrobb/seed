@@ -1,8 +1,13 @@
 #pragma once
 
-typedef struct assets assets;
+#include <stdbool.h>
 
-// Returns the one and only handle for loading assets.
-assets* assets_get();
+// Initializes the assets singleton.
+bool assets_init();
 
+// Resets the assets singleton to default state freeing
+// any loaded assets in the process.
+void assets_reset(struct renderer* r);
+
+// Returns the texture for the specified path.
 struct texture* assets_get_texture(const char* texture_path);

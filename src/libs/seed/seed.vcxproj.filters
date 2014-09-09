@@ -28,6 +28,7 @@
     <ClCompile Include="render.c" />
     <ClCompile Include="stb_image.c" />
     <ClCompile Include="texture.c" />
+    <ClCompile Include="assets.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="platform\condition_var.h">
