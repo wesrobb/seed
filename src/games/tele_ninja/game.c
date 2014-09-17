@@ -45,11 +45,7 @@ bool game_init(GLFWwindow* window,
                 return false;
         }
 
-        if (!assets_init()) {
-                LOGERR("%s", "Failed to initialize assets");
-                return false;
-        }
-
+        assets_init();
         Fps_init();
 
 

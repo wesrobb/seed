@@ -4,23 +4,22 @@
 #include <stdbool.h>
 
 typedef struct texture {
-        uint32_t id;
+        uint8_t id;
         uint32_t gl_id;
 
         int width;
         int height;
         int channels;
-
         unsigned char* data;
-        struct mutex* data_mutex;
 
         bool uploaded;
 } texture;
 
-// Initializes the specified texture from the specified file.
+// Initializes the specified texture from the specified file
+// and assigns it the specified id.
 // Returns false if initialization failed. Errors will be logged.
-bool texture_init(texture*, const char* location);
+bool texture_init(texture*, int8_t id, const char* location);
 
 // Deletes the texture data and resets all fields to 0.
 // Also removes the texture data from GPU memory if it was uploaded.
-void texture_reset(texture* t, struct renderer* r);
+void texture_reset(texture*, struct renderer* r);

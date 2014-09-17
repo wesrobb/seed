@@ -29,6 +29,7 @@
     <ClCompile Include="stb_image.c" />
     <ClCompile Include="texture.c" />
     <ClCompile Include="assets.c" />
+    <ClCompile Include="anim.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="platform\condition_var.h">
@@ -59,5 +60,6 @@
     <ClInclude Include="stretchy_buffer.h" />
     <ClInclude Include="texture.h" />
     <ClInclude Include="assets.h" />
+    <ClInclude Include="anim.h" />
   </ItemGroup>
 </Project>
